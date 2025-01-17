@@ -1,3 +1,3 @@
 # AuroraDev
 
-A collaborative IDE
+An interview simulation platform for developers.
