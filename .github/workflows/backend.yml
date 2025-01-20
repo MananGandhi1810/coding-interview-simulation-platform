@@ -7,7 +7,7 @@ on:
 
 env:
     REGISTRY: ghcr.io
-    IMAGE_NAME: manangandhi1810/auroradev-backend
+    IMAGE_NAME: manangandhi1810/cisp-backend
 
 jobs:
     build_and_publish:
