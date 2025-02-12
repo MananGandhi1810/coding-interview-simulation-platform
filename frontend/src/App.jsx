@@ -15,7 +15,6 @@ import ForgotPassword from "@/pages/ForgotPassword.jsx";
 import VerifyOtp from "@/pages/VerifyOtp.jsx";
 import ResetPassword from "@/pages/ResetPassword.jsx";
 import NoPageFound from "@/pages/404.jsx";
-import { useToast } from "@/hooks/use-toast";
 
 function App() {
     const initialState = {
@@ -25,7 +24,6 @@ function App() {
         token: null,
         isAuthenticated: false,
     };
-    const { toast } = useToast();
     const [user, setUser] = useState(
         () =>
             JSON.parse(
