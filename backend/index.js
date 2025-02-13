@@ -1,7 +1,8 @@
 import express from "express";
-import cors from "cors";
 import authRouter from "./router/auth.js";
+import interviewRouter from "./router/interview.js";
 import logger from "morgan";
+import cors from "cors";
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(
 );
 
 app.use("/auth", authRouter);
+app.use("/interview", interviewRouter);
 
 app.use(function (req, res, next) {
     res.status(404).json({

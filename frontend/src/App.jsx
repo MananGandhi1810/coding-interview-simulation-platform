@@ -15,6 +15,7 @@ import ForgotPassword from "@/pages/ForgotPassword.jsx";
 import VerifyOtp from "@/pages/VerifyOtp.jsx";
 import ResetPassword from "@/pages/ResetPassword.jsx";
 import NoPageFound from "@/pages/404.jsx";
+import StartInterview from "./pages/StartInterview";
 
 function App() {
     const initialState = {
@@ -52,7 +53,6 @@ function App() {
             id: res.data.id,
             name: res.data.name,
             email: res.data.email,
-            points: res.data.points,
         });
     };
 
@@ -127,6 +127,16 @@ function App() {
                         return null;
                     },
                     element: <ResetPassword />,
+                },
+                {
+                    path: "/start-interview",
+                    loader: ({ request }) => {
+                        if (!user.isAuthenticated) {
+                            return redirect("/login?next=/start-interview");
+                        }
+                        return null;
+                    },
+                    element: <StartInterview />,
                 },
                 {
                     path: "*",
