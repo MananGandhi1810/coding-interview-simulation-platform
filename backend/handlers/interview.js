@@ -16,7 +16,7 @@ const newInterviewHandler = async (req, res) => {
     try {
         await sendQueueMessage(
             "new-interview",
-            JSON.stringify({ jobRole, yoe, resumeUrl }),
+            JSON.stringify({ jobRole, yoe, resumeUrl, name: req.user.name }),
         );
     } catch (e) {
         console.log(e);
