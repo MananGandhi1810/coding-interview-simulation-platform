@@ -1,42 +1,25 @@
 import { Button } from "@/components/ui/button";
-import React, { useCallback, useContext, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import React, { useContext, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { ArrowRight } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import axios from "axios";
 import AuthContext from "@/providers/auth-context";
+import { UploadResumeDropzone } from "@/components/custom/UploadResume.jsx";
 
 function StartInterview() {
-    const [file, setFile] = useState(null);
     const [jobRole, setJobRole] = useState("");
     const [yoe, setYoe] = useState("");
     const { user, setUser } = useContext(AuthContext);
-
-    const onDrop = useCallback((acceptedFiles) => {
-        const pdfFile = acceptedFiles[0];
-        if (pdfFile?.type === "application/pdf") {
-            setFile(pdfFile);
-        } else {
-            alert("Please upload a PDF file");
-        }
-    }, []);
-
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop,
-        accept: {
-            "application/pdf": [".pdf"],
-        },
-        multiple: false,
-    });
+    const [resumeUrl, setresumeUrl] = useState(null);
 
     const submit = async (e) => {
         e.preventDefault();
         const data = {
             jobRole,
             yoe,
-            file,
+            resumeUrl,
         };
         console.log(data);
         const result = await axios
@@ -60,27 +43,37 @@ function StartInterview() {
                     <h1 className="text-2xl font-bold mb-6">
                         Upload Your Resume
                     </h1>
-                    <div
-                        {...getRootProps()}
-                        className={`border-2 border-dashed rounded-lg text-center cursor-pointer md:h-1/2 h-full flex flex-col items-center justify-center w-full
-                    ${
-                        isDragActive
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-300"
-                    }`}
-                    >
-                        <input {...getInputProps()} />
-                        <p className="text-gray-600">
-                            {isDragActive
-                                ? "Drop the PDF here"
-                                : "Drag & drop a PDF file here, or click to select"}
-                        </p>
-                        {file && (
-                            <p className="mt-2 text-green-600">
-                                Selected file: {file.name}
-                            </p>
-                        )}
-                    </div>
+                    <UploadResumeDropzone
+                        disabled={resumeUrl != null}
+                        className="border-2 border-dashed rounded-lg text-center cursor-pointer md:h-1/2 h-full flex flex-col items-center justify-center w-full"
+                        appearance={{ button: { color: "GrayText" } }}
+                        endpoint="resumeUploader"
+                        headers={{
+                            Authorization: `Bearer ${user.token}`,
+                        }}
+                        content={{
+                            button: ({ ready, isUploading }) => {
+                                if (resumeUrl != null) return "Resume Uploaded";
+                                if (!ready) return "Preparing Upload";
+                                if (isUploading) return "Uploading...";
+                                return "Upload Resume";
+                            },
+                            label: ({ ready, isUploading }) => {
+                                if (resumeUrl != null) return "Resume Uploaded";
+                                if (!ready) return "Preparing Upload";
+                                if (isUploading) return "Uploading...";
+                                return "Select Resume";
+                            },
+                        }}
+                        config={{ mode: "auto" }}
+                        onClientUploadComplete={(res) => {
+                            console.log("File: ", res[0]);
+                            setresumeUrl(res[0].ufsUrl);
+                        }}
+                        onUploadError={(error) => {
+                            console.log(`ERROR! ${error.message}`);
+                        }}
+                    />
                 </div>
                 <Separator className="md:h-full md:w-[1px] h-[1px] w-full" />
                 <div className="md:flex-1 flex flex-col items-center justify-center p-10 w-full">
@@ -104,7 +97,7 @@ function StartInterview() {
                         className="mt-4 gap-2"
                         type="submit"
                         onClick={submit}
-                        disabled={!file || !jobRole || !yoe}
+                        disabled={resumeUrl == null || !jobRole || !yoe}
                     >
                         Start Interview <ArrowRight />
                     </Button>
