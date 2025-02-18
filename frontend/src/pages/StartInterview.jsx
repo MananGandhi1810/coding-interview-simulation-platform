@@ -72,6 +72,10 @@ function StartInterview() {
                         }}
                         onUploadError={(error) => {
                             console.log(`ERROR! ${error.message}`);
+                            toast({
+                                title: "Error",
+                                description: "Could not upload file",
+                            });
                         }}
                     />
                 </div>
