@@ -9,7 +9,6 @@ const f = createUploadthing();
 
 router.use(
     "/upload-resume",
-    // checkAuth,
     createRouteHandler({
         router: {
             resumeUploader: f({

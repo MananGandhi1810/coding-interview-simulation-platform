@@ -9,6 +9,16 @@ class ResumeAnalysisSchema(BaseModel):
     rating: int
 
 
+class QuestionAnswerSchema(BaseModel):
+    question: str
+    expected_answer: str
+
+
+class ModelResponseSchema(BaseModel):
+    resume_analysis: ResumeAnalysisSchema
+    question_answer: list[QuestionAnswerSchema]
+
+
 redis_client = redis.StrictRedis(host="localhost", port=6379, db=0)
 channel = "new-interview"
 pubsub = redis_client.pubsub()
@@ -33,11 +43,39 @@ for message in pubsub.listen():
         THE RATING OF THE RESUME MUST BE OUT OF 10.
         Adhere to the role and years of experience and give feedback accordingly.
         Explain in detail.
+        For projects, focus on the When and Why, then How and not Where.
+        Also check if the Resume is tailored to the role the user is applying for.
+        For the questions, ask concept based questions as well as resume based questions.
+        When replying, ONLY answer in the JSON schema no other output or text outside the JSON
         schema:
-            - analysis: str
-            - rating: int
+            - resume_analysis:
+                - analysis: str
+                - rating: int
+            - question_answer:
+                [
+                    - question: str
+                    - expected_answer: str
+                ]
         """
-        cf_response = ask_ai_model_cf(prompt, ResumeAnalysisSchema)
-        gemini_response = ask_ai_model_gemini(prompt, ResumeAnalysisSchema)
-        print("Coudflare:", cf_response)
+        cf_response = ask_ai_model_cf(prompt, ModelResponseSchema)
+        gemini_response = ask_ai_model_gemini(prompt, ModelResponseSchema)
+        print("Cloudflare:", cf_response)
         print("Gemini:", gemini_response)
+        # print("-------------------------------------------------------")
+        # print("Cloudflare")
+        # print("----")
+        # print("Resume Analysis: ", cf_response["resume_analysis"]["analysis"])
+        # print("Rating: ", cf_response["resume_analysis"]["rating"])
+        # for i in range(len(cf_response["question_answer"])):
+        #     print("Question: ", cf_response["question_answer"][i]["question"])
+        #     print("Answer: ", cf_response["question_answer"][i]["answer"])
+        # print("-------------------------------------------------------")
+        print("-------------------------------------------------------")
+        print("Gemini")
+        print("----")
+        print("Resume Analysis: ", gemini_response["resume_analysis"]["analysis"])
+        print("Rating: ", gemini_response["resume_analysis"]["rating"])
+        for i in range(len(gemini_response["question_answer"])):
+            print("Question: ", gemini_response["question_answer"][i]["question"])
+            print("Answer: ", gemini_response["question_answer"][i]["answer"])
+        print("-------------------------------------------------------")
