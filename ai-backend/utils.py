@@ -11,7 +11,7 @@ import openai
 
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-gemini_model = genai.GenerativeModel("gemini-2.0-pro")
+gemini_model = genai.GenerativeModel("gemini-1.5-pro")
 cf_url = (
     f"https://api.cloudflare.com/client/v4/accounts/{os.getenv("CF_ACCOUNT_ID")}/ai/v1"
 )
@@ -35,18 +35,17 @@ def parse_resume(url):
     return text_content
 
 
-def ask_ai_model_gemini(prompt, schema):
+def ask_ai_model_gemini(prompt):
     response = gemini_model.generate_content(
         prompt,
         generation_config=GenerationConfig(
-            response_schema=schema,
             response_mime_type="application/json",
         ),
     )
     return json.loads(response.text)
 
 
-def ask_ai_model_cf(prompt, schema):
+def ask_ai_model_cf(prompt):
     response = cf_client.beta.chat.completions.parse(
         model=cf_model_name,
         messages=[
