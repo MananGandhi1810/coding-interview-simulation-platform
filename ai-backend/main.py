@@ -21,7 +21,7 @@ for message in pubsub.listen():
         DO NOT use MarkDown outside the JSON content.
         When replying, ONLY answer in the JSON schema no other output or text outside the JSON.
         The user's name is: {data.get("name")}
-        The user is applying for: {data.get("role")}
+        The user is applying for: {data.get("role")} at {data.get("company")}
         The user has an experience of {data.get("yoe")} years
         GIVE FEEDBACK AND CONSTRUCTIVE CRITICISM TO THE USER.
         THE RATING OF THE RESUME MUST BE OUT OF 10.

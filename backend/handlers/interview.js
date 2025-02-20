@@ -4,9 +4,10 @@ import { sendQueueMessage } from "../utils/queue-manager.js";
 const prisma = new PrismaClient();
 
 const newInterviewHandler = async (req, res) => {
-    const { jobRole, yoe, resumeUrl } = req.body;
+    const { jobRole, yoe, resumeUrl, company } = req.body;
 
-    if (!jobRole || !yoe || !resumeUrl) {
+    console.log({ jobRole, yoe, resumeUrl, company });
+    if (!jobRole || !yoe || !resumeUrl || !company) {
         return res.status(400).json({
             success: false,
             message: "All fields are required",
@@ -16,7 +17,13 @@ const newInterviewHandler = async (req, res) => {
     try {
         await sendQueueMessage(
             "new-interview",
-            JSON.stringify({ jobRole, yoe, resumeUrl, name: req.user.name }),
+            JSON.stringify({
+                jobRole,
+                yoe,
+                resumeUrl,
+                company,
+                name: req.user.name,
+            }),
         );
     } catch (e) {
         console.log(e);

@@ -11,6 +11,7 @@ import { UploadResumeDropzone } from "@/components/custom/UploadResume.jsx";
 function StartInterview() {
     const [jobRole, setJobRole] = useState("");
     const [yoe, setYoe] = useState("");
+    const [company, setCompany] = useState("");
     const { user, setUser } = useContext(AuthContext);
     const [resumeUrl, setresumeUrl] = useState(null);
 
@@ -20,6 +21,7 @@ function StartInterview() {
             jobRole,
             yoe,
             resumeUrl,
+            company,
         };
         console.log(data);
         const result = await axios
@@ -97,11 +99,19 @@ function StartInterview() {
                         onChange={(e) => setYoe(e.target.value)}
                         className="mt-4 w-full"
                     />
+                    <Input
+                        placeholder="Company"
+                        value={company}
+                        onChange={(e) => setCompany(e.target.value)}
+                        className="mt-4 w-full"
+                    />
                     <Button
                         className="mt-4 gap-2"
                         type="submit"
                         onClick={submit}
-                        disabled={resumeUrl == null || !jobRole || !yoe}
+                        disabled={
+                            resumeUrl == null || !jobRole || !yoe || !company
+                        }
                     >
                         Start Interview <ArrowRight />
                     </Button>
