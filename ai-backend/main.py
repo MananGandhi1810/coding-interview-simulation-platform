@@ -11,7 +11,7 @@ print(f"Subscribed to {channel}. Waiting for messages...")
 for message in pubsub.listen():
     if message["type"] == "message":
         data = json.loads(message["data"])
-        print(f"Received analysis request of {data.get("name")}")
+        print(f"Received analysis request of {data.get("name")} ({data.get("id")})")
         resume_text = parse_resume(data.get("resumeUrl"))
         print(f"Resume of {data.get("name")} parsed")
         prompt = f"""JSON MODE ON
