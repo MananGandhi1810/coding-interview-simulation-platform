@@ -63,10 +63,10 @@ export default function NavBar() {
                             Home
                         </Link>
                         <Link
-                            to="/about"
+                            to="/start-interview"
                             className="text-gray-100 hover:text-white relative after:bg-white after:absolute after:h-0.5 after:w-0 after:-bottom-1 after:left-0 hover:after:w-full after:transition-all duration-300"
                         >
-                            About
+                            Start Interview
                         </Link>
                     </nav>
                     <div className="flex items-center justify-end gap-4 w-[66px]">
@@ -146,10 +146,10 @@ export default function NavBar() {
                                         Home
                                     </Link>
                                     <Link
-                                        to="/about"
+                                        to="/start-interview"
                                         className="text-sm font-medium text-gray-100 hover:text-white"
                                     >
-                                        About
+                                        Start Interview
                                     </Link>
                                 </div>
                             </SheetContent>

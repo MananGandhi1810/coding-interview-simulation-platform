@@ -60,7 +60,7 @@ function Interview() {
     }
 
     return (
-        <div className="container p-4">
+        <div className="w-full p-4">
             <div className="flex flex-col gap-4">
                 <div>
                     <h1 className="text-3xl font-bold">
@@ -72,7 +72,7 @@ function Interview() {
                     </p>
                 </div>
 
-                <div className="w-full flex flex-col md:flex-row gap-2">
+                <div className="w-full flex flex-col md:flex-row gap-10">
                     <div className="flex-1">
                         <h2 className="text-2xl font-semibold mb-4">
                             Resume Analysis
