@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { createRouteHandler, createUploadthing } from "uploadthing/express";
 import { checkAuth } from "../middlewares/auth.js";
-import { newInterviewHandler } from "../handlers/interview.js";
+import {
+    getInterviewStatusHandler,
+    newInterviewHandler,
+    getInterviewHandler,
+} from "../handlers/interview.js";
 import { checkAuthForUpload } from "../middlewares/upload-auth.js";
 
 const router = Router();
@@ -34,5 +38,7 @@ router.use(
 );
 
 router.post("/new", checkAuth, newInterviewHandler);
+router.get("/:interviewId/status", checkAuth, getInterviewStatusHandler);
+router.get("/:interviewId", checkAuth, getInterviewHandler);
 
 export default router;

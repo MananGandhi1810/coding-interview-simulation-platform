@@ -8,10 +8,14 @@ from google.generativeai.types.generation_types import GenerationConfig
 from dotenv import load_dotenv
 import json
 import openai
+from prisma import Prisma
+
+db = Prisma()
+db.connect()
 
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-gemini_model = genai.GenerativeModel("gemini-1.5-pro")
+gemini_model = genai.GenerativeModel("gemini-2.0-flash")
 cf_url = (
     f"https://api.cloudflare.com/client/v4/accounts/{os.getenv("CF_ACCOUNT_ID")}/ai/v1"
 )
@@ -65,3 +69,46 @@ def ask_ai_model_cf(prompt):
         print(e)
         print(response.choices[0].message.content)
         return None
+
+
+def push_to_db(id, analysis, question_answer):
+    res = db.resumeanalysis.create(
+        {
+            "interviewId": id,
+            "analysis": analysis.get("analysis"),
+            "rating": analysis.get("rating"),
+        },
+    )
+
+    print(question_answer)
+    for qa in question_answer:
+        res = db.questionanswer.create(
+            {
+                "interviewId": id,
+                "question": qa.get("question"),
+                "answer": qa.get("answer"),
+                "expectedAnswer": qa.get("answer"),
+            }
+        )
+        print(res)
+
+    db.interview.update(
+        {
+            "state": "PROCESSED",
+        },
+        {
+            "id": id,
+        },
+    )
+    return res
+
+
+def push_error_to_db(id):
+    db.interview.update(
+        {
+            "state": "ERROR",
+        },
+        {
+            "id": id,
+        },
+    )

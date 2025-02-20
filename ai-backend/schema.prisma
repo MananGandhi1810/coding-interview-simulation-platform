@@ -1,0 +1,114 @@
+generator db {
+    provider             = "prisma-client-py"
+    interface            = "sync"
+    recursive_type_depth = 5
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum DataProcessingState {
+    QUEUED
+    PROCESSING
+    PROCESSED
+    ERROR
+}
+
+enum SubmissionStatus {
+    QUEUED
+    EXECUTING
+    EXECUTED
+    TIMELIMITEXCEEDED
+}
+
+model User {
+    id                String       @id @default(cuid())
+    email             String       @unique
+    name              String?
+    password          String
+    interviews        Interview[]
+    submissions       Submission[]
+    isVerified        Boolean      @default(false)
+    createdAt         DateTime     @default(now())
+    updatedAt         DateTime     @updatedAt
+    passwordUpdatedAt DateTime     @default(now())
+}
+
+model Interview {
+    id               String              @id @default(cuid())
+    company          String
+    role             String
+    yoe              Int
+    resumeUrl        String
+    state            DataProcessingState @default(QUEUED)
+    resumeAnalysisId String?
+    resumeAnalysis   ResumeAnalysis?
+    questionAnswer   QuestionAnswer[]
+    codeProblem      CodeProblem[]
+    userId           String
+    user             User                @relation(fields: [userId], references: [id])
+    updatedAt        DateTime            @updatedAt
+    createdAt        DateTime            @default(now())
+}
+
+model ResumeAnalysis {
+    id          String    @id @default(cuid())
+    analysis    String
+    rating      Int
+    interview   Interview @relation(fields: [interviewId], references: [id])
+    interviewId String    @unique
+    updatedAt   DateTime  @updatedAt
+    createdAt   DateTime  @default(now())
+}
+
+model QuestionAnswer {
+    id             String    @id @default(cuid())
+    question       String
+    answer         String
+    expectedAnswer String
+    interview      Interview @relation(fields: [interviewId], references: [id])
+    interviewId    String
+    updatedAt      DateTime  @updatedAt
+    createdAt      DateTime  @default(now())
+}
+
+model Submission {
+    id                 String           @id @default(cuid())
+    userId             String
+    time               DateTime         @default(now())
+    success            Boolean?
+    code               String
+    language           String
+    status             SubmissionStatus @default(QUEUED)
+    problemStatementId String
+    output             String?
+    execTime           Int?
+    passedTestCases    Int?
+    totalTestCases     Int?
+    codeProblem        CodeProblem      @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
+    user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+    updatedAt          DateTime         @updatedAt
+    createdAt          DateTime         @default(now())
+}
+
+model CodeProblem {
+    id               String       @id @default(cuid())
+    problemStatement String
+    submissions      Submission[]
+    testCases        TestCases[]
+    Interview        Interview?   @relation(fields: [interviewId], references: [id])
+    interviewId      String?
+}
+
+model TestCases {
+    id            String      @id @default(cuid())
+    input         String
+    output        String
+    hidden        Boolean     @default(true)
+    codeProblem   CodeProblem @relation(fields: [codeProblemId], references: [id])
+    codeProblemId String
+    updatedAt     DateTime    @updatedAt
+    createdAt     DateTime    @default(now())
+}

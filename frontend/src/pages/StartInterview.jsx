@@ -7,8 +7,10 @@ import { toast } from "@/hooks/use-toast";
 import axios from "axios";
 import AuthContext from "@/providers/auth-context";
 import { UploadResumeDropzone } from "@/components/custom/UploadResume.jsx";
+import { useNavigate } from "react-router-dom";
 
 function StartInterview() {
+    const navigate = useNavigate();
     const [jobRole, setJobRole] = useState("");
     const [yoe, setYoe] = useState("");
     const [company, setCompany] = useState("");
@@ -23,19 +25,31 @@ function StartInterview() {
             resumeUrl,
             company,
         };
-        console.log(data);
-        const result = await axios
-            .post(`${process.env.SERVER_URL}/interview/new`, data, {
-                headers: {
-                    Authorization: `Bearer ${user.token}`,
-                },
-            })
-            .then((res) => res.data);
-        console.log(result);
-        toast({
-            title: "Details submitted",
-            description: "Interview starting soon, please wait...",
-        });
+
+        try {
+            const result = await axios
+                .post(`${process.env.SERVER_URL}/interview/new`, data, {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
+                    },
+                })
+                .then((res) => res.data);
+            console.log(result);
+
+            toast({
+                title: "Details submitted",
+                description: "Interview starting soon, please wait...",
+            });
+
+            navigate(`/interview-status`, {
+                state: { interviewId: result.data.interview.id },
+            });
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: "Failed to start interview",
+            });
+        }
     };
 
     return (

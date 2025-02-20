@@ -65,8 +65,82 @@ const newInterviewHandler = async (req, res) => {
     res.json({
         success: true,
         message: "Analyzing resume",
-        data: null,
+        data: { interview },
     });
 };
 
-export { newInterviewHandler };
+const getInterviewStatusHandler = async (req, res) => {
+    const { interviewId } = req.params;
+
+    if (!interviewId) {
+        return res.status(400).json({
+            success: false,
+            message: "Interview ID is required",
+            data: null,
+        });
+    }
+
+    const interview = await prisma.interview.findUnique({
+        where: {
+            id: interviewId,
+            userId: req.user.id,
+        },
+    });
+
+    if (!interview) {
+        return res.status(404).json({
+            success: false,
+            message: "Interview not found",
+            data: null,
+        });
+    }
+
+    return res.json({
+        success: true,
+        message: "Interview status retrieved",
+        data: {
+            state: interview.state,
+            resumeAnalysisId: interview.resumeAnalysisId,
+        },
+    });
+};
+
+const getInterviewHandler = async (req, res) => {
+    const { interviewId } = req.params;
+
+    if (!interviewId) {
+        return res.status(400).json({
+            success: false,
+            message: "Interview ID is required",
+            data: null,
+        });
+    }
+
+    const interview = await prisma.interview.findUnique({
+        where: {
+            id: interviewId,
+            userId: req.user.id,
+        },
+        include: {
+            questionAnswer: true,
+            resumeAnalysis: true,
+            codeProblem: true,
+        },
+    });
+
+    if (!interview) {
+        return res.status(404).json({
+            success: false,
+            message: "Interview not found",
+            data: null,
+        });
+    }
+
+    return res.json({
+        success: true,
+        message: "Interview retrieved",
+        data: { interview },
+    });
+};
+
+export { newInterviewHandler, getInterviewStatusHandler, getInterviewHandler };

@@ -3,6 +3,7 @@ import {
     createBrowserRouter,
     redirect,
     RouterProvider,
+    useLocation,
 } from "react-router-dom";
 import Home from "@/pages/Home.jsx";
 import Layout from "@/pages/Layout.jsx";
@@ -16,6 +17,8 @@ import VerifyOtp from "@/pages/VerifyOtp.jsx";
 import ResetPassword from "@/pages/ResetPassword.jsx";
 import NoPageFound from "@/pages/404.jsx";
 import StartInterview from "./pages/StartInterview";
+import InterviewStatus from "./pages/InterviewStatus";
+import Interview from "./pages/Interview";
 
 function App() {
     const initialState = {
@@ -137,6 +140,14 @@ function App() {
                         return null;
                     },
                     element: <StartInterview />,
+                },
+                {
+                    path: "/interview-status",
+                    element: <InterviewStatus />,
+                },
+                {
+                    path: "/interview",
+                    element: <Interview />,
                 },
                 {
                     path: "*",
