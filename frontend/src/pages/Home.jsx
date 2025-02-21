@@ -7,6 +7,7 @@ import {
     CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router";
 
 function Home() {
     return (
@@ -22,7 +23,9 @@ function Home() {
                     </p>
                 </CardContent>
                 <CardFooter>
-                    <Button>Start Simulation</Button>
+                    <Link to="/start-interview" asChild>
+                        <Button>Start Simulation</Button>
+                    </Link>
                 </CardFooter>
             </Card>
         </div>
