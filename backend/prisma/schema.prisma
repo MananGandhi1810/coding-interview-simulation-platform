@@ -46,7 +46,7 @@ model Interview {
     questionAnswer   QuestionAnswer[]
     codeProblem      CodeProblem[]
     userId           String
-    user             User                @relation(fields: [userId], references: [id])
+    user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
     updatedAt        DateTime            @updatedAt
     createdAt        DateTime            @default(now())
 }
@@ -55,7 +55,7 @@ model ResumeAnalysis {
     id          String    @id @default(cuid())
     analysis    String
     rating      Int
-    interview   Interview @relation(fields: [interviewId], references: [id])
+    interview   Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
     interviewId String    @unique
     updatedAt   DateTime  @updatedAt
     createdAt   DateTime  @default(now())
@@ -66,7 +66,7 @@ model QuestionAnswer {
     question       String
     answer         String
     expectedAnswer String
-    interview      Interview @relation(fields: [interviewId], references: [id])
+    interview      Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
     interviewId    String
     updatedAt      DateTime  @updatedAt
     createdAt      DateTime  @default(now())
@@ -96,7 +96,7 @@ model CodeProblem {
     problemStatement String
     submissions      Submission[]
     testCases        TestCases[]
-    Interview        Interview?   @relation(fields: [interviewId], references: [id])
+    Interview        Interview?   @relation(fields: [interviewId], references: [id], onDelete: Cascade)
     interviewId      String?
 }
 
@@ -105,7 +105,7 @@ model TestCases {
     input         String
     output        String
     hidden        Boolean     @default(true)
-    codeProblem   CodeProblem @relation(fields: [codeProblemId], references: [id])
+    codeProblem   CodeProblem @relation(fields: [codeProblemId], references: [id], onDelete: Cascade)
     codeProblemId String
     updatedAt     DateTime    @updatedAt
     createdAt     DateTime    @default(now())

@@ -122,7 +122,12 @@ const getInterviewHandler = async (req, res) => {
             userId: req.user.id,
         },
         include: {
-            questionAnswer: true,
+            questionAnswer: {
+                select: {
+                    id: true,
+                    question: true,
+                },
+            },
             resumeAnalysis: true,
             codeProblem: true,
         },
