@@ -2,6 +2,8 @@ FROM python:3.11-slim-bookworm AS builder
 WORKDIR /app
 COPY requirements.txt /app/requirements.txt
 RUN pip install -r /app/requirements.txt
+COPY schema.prisma ./schema.prisma
+RUN npx prisma generate
 
 FROM python:3.11-slim-bookworm AS production
 WORKDIR /app

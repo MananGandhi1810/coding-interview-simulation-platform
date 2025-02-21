@@ -14,16 +14,18 @@ function StartInterview() {
     const [jobRole, setJobRole] = useState("");
     const [yoe, setYoe] = useState("");
     const [company, setCompany] = useState("");
-    const { user, setUser } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     const [resumeUrl, setresumeUrl] = useState(null);
+    const [driveLink, setDriveLink] = useState("");
 
     const submit = async (e) => {
         e.preventDefault();
+        const finalResume = resumeUrl || driveLink;
         const data = {
             jobRole,
             yoe,
-            resumeUrl,
             company,
+            resumeUrl: finalResume,
         };
 
         try {
@@ -60,7 +62,7 @@ function StartInterview() {
                         Upload Your Resume
                     </h1>
                     <UploadResumeDropzone
-                        disabled={resumeUrl != null}
+                        disabled={resumeUrl != null || driveLink.trim() != ""}
                         className="border-2 border-dashed rounded-lg text-center cursor-pointer md:h-1/2 h-full flex flex-col items-center justify-center w-full"
                         appearance={{ button: { color: "GrayText" } }}
                         endpoint="resumeUploader"
@@ -94,6 +96,16 @@ function StartInterview() {
                             });
                         }}
                     />
+                    <h2 className="text-xl font-semibold my-4">
+                        Or Paste Drive Link
+                    </h2>
+                    <Input
+                        placeholder="Paste your Drive link"
+                        value={driveLink}
+                        disabled={!!resumeUrl}
+                        onChange={(e) => setDriveLink(e.target.value)}
+                        className="w-full"
+                    />
                 </div>
                 <Separator className="md:h-full md:w-[1px] h-[1px] w-full" />
                 <div className="md:flex-1 flex flex-col items-center justify-center p-10 w-full">
@@ -124,7 +136,10 @@ function StartInterview() {
                         type="submit"
                         onClick={submit}
                         disabled={
-                            resumeUrl == null || !jobRole || !yoe || !company
+                            (!resumeUrl && driveLink === "") ||
+                            !jobRole ||
+                            !yoe ||
+                            !company
                         }
                     >
                         Start Interview <ArrowRight />

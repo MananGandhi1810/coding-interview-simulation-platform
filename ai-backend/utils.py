@@ -8,7 +8,8 @@ from google.generativeai.types.generation_types import GenerationConfig
 from dotenv import load_dotenv
 import json
 import openai
-from prisma import Prisma
+from generated.prisma_client import Prisma
+import re
 
 db = Prisma()
 db.connect()
@@ -22,9 +23,15 @@ cf_url = (
 cf_model_name = "@cf/mistral/mistral-7b-instruct-v0.2-lora"
 cf_client = openai.Client(api_key=os.getenv("CF_API_KEY"), base_url=cf_url)
 
+drive_regex = re.compile(r"https://drive.google.com/file/d/(.*)/view")
+
 
 def parse_resume(url):
+    if "google.com" in url:
+        url = get_drive_download_url(url)
     resume_data = requests.get(url)
+    if resume_data.status_code >= 400:
+        raise Exception("Invalid URL")
     with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf_file:
         temp_pdf_file.write(resume_data.content)
         temp_pdf_path = temp_pdf_file.name
@@ -37,6 +44,15 @@ def parse_resume(url):
     if temp_pdf_path:
         os.remove(temp_pdf_path)
     return text_content
+
+
+def get_drive_download_url(url):
+    groups = drive_regex.match(url).groups()
+    try:
+        print(groups[0])
+    except:
+        raise Exception("Invalid drive URL")
+    return f"https://www.googleapis.com/drive/v3/files/{groups[0]}?key={os.getenv("GDRIVE_API_KEY")}&alt=media"
 
 
 def ask_ai_model_gemini(prompt):
