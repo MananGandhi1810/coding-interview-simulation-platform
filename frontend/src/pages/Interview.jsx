@@ -7,6 +7,7 @@ import NoPageFound from "./404";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import Markdown from "react-markdown";
+import Webcam from "react-webcam";
 
 function Interview() {
     const location = useLocation();
@@ -85,6 +86,12 @@ function Interview() {
                         <Badge variant="outline" className="mt-2">
                             Score: {interview.resumeAnalysis?.rating}/10
                         </Badge>
+                        <h2 className="text-2xl font-semibold my-4">
+                            Webcam Feed
+                        </h2>
+                        <div className="border rounded-lg overflow-hidden">
+                            <Webcam audio={false} className="w-full" />
+                        </div>
                     </div>
 
                     <div className="flex-1">
