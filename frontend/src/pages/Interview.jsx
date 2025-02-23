@@ -1,25 +1,45 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import AuthContext from "@/providers/auth-context";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import NoPageFound from "./404";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import Markdown from "react-markdown";
 import Webcam from "react-webcam";
+import useSpeechToText from "react-hook-speech-to-text";
+import { Button } from "@/components/ui/button";
 
 function Interview() {
     const location = useLocation();
     const { interviewId } = location.state || {};
     const { user } = useContext(AuthContext);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(null);
     const [interview, setInterview] = useState(null);
+    const {
+        error,
+        interimResult,
+        isRecording,
+        results,
+        startSpeechToText,
+        stopSpeechToText,
+    } = useSpeechToText({
+        continuous: true,
+        useLegacyResults: false,
+    });
 
     if (!interviewId) {
         return <NoPageFound />;
     }
+
+    useEffect(() => {
+        if (error) {
+            setErrorMessage(error);
+        }
+    }, []);
+
+    useEffect(() => {
+        console.log(results);
+    }, [results]);
 
     useEffect(() => {
         const fetchInterview = async () => {
@@ -31,10 +51,9 @@ function Interview() {
                         },
                     })
                     .then((res) => res.data);
-                console.log(result);
                 setInterview(result.data.interview);
             } catch (e) {
-                setError("Failed to load interview");
+                setErrorMessage("Failed to load interview");
             } finally {
                 setLoading(false);
             }
@@ -52,10 +71,12 @@ function Interview() {
         );
     }
 
-    if (error || !interview) {
+    if (errorMessage || !interview) {
         return (
             <div className="container mx-auto p-4 flex flex-col items-center justify-center h-full-w-nav">
-                <h1 className="text-2xl font-bold text-red-500">{error}</h1>
+                <h1 className="text-2xl font-bold text-red-500">
+                    {errorMessage}
+                </h1>
             </div>
         );
     }
@@ -73,12 +94,39 @@ function Interview() {
                     </p>
                 </div>
 
-                <div className="w-full flex flex-col md:flex-row gap-10">
-                    <div className="border rounded-lg overflow-hidden flex-1 h-min">
-                        <Webcam audio={false} className="w-full" />
+                <div className="w-full flex flex-col lg:flex-row gap-10">
+                    <div className="overflow-hidden flex-1 flex items-center flex-col">
+                        <div className="border rounded-lg w-full">
+                            <Webcam
+                                audio={false}
+                                className="w-full aspect-video object-cover"
+                            />
+                        </div>
+                        <div className="flex items-center flex-col py-4">
+                            <Button
+                                onClick={
+                                    isRecording
+                                        ? stopSpeechToText
+                                        : startSpeechToText
+                                }
+                            >
+                                {isRecording
+                                    ? "Stop Answering"
+                                    : "Start Answering"}
+                            </Button>
+                            {results.map((result) => {
+                                console.log(result);
+                                return (
+                                    <span key={result.timestamp}>
+                                        {result.transcript}{" "}
+                                    </span>
+                                );
+                            })}
+                            {interimResult && <span>{interimResult}</span>}
+                        </div>
                     </div>
 
-                    <div className="flex-1">
+                    <div className="flex-1 flex flex-col items-center">
                         <h2 className="text-2xl font-semibold mb-4">
                             Questions
                         </h2>
@@ -92,9 +140,6 @@ function Interview() {
                                         Question {index + 1}
                                     </h3>
                                     <p className="mt-2">{qa.question}</p>
-                                    <p className="mt-2 text-gray-500">
-                                        Expected Answer: {qa.expectedAnswer}
-                                    </p>
                                 </div>
                             ))}
                         </div>

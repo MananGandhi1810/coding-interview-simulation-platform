@@ -64,7 +64,10 @@ function StartInterview() {
                     <UploadResumeDropzone
                         disabled={resumeUrl != null || driveLink.trim() != ""}
                         className="border-2 border-dashed rounded-lg text-center cursor-pointer md:h-1/2 h-full flex flex-col items-center justify-center w-full"
-                        appearance={{ button: { color: "GrayText" } }}
+                        appearance={{
+                            button: { color: "GrayText" },
+                            uploadIcon: { height: "64px" },
+                        }}
                         endpoint="resumeUploader"
                         headers={{
                             Authorization: `Bearer ${user.token}`,
@@ -96,7 +99,7 @@ function StartInterview() {
                             });
                         }}
                     />
-                    <h2 className="text-xl font-semibold my-4">
+                    <h2 className="text-2xl font-semibold my-6">
                         Or Paste Drive Link
                     </h2>
                     <Input

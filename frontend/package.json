@@ -28,6 +28,7 @@
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "react-dropzone": "^14.3.5",
+        "react-hook-speech-to-text": "^0.8.0",
         "react-markdown": "^10.0.0",
         "react-router": "^7.1.1",
         "react-router-dom": "^7.1.3",
