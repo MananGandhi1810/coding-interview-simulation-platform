@@ -66,7 +66,7 @@ function StartInterview() {
                         className="border-2 border-dashed rounded-lg text-center cursor-pointer md:h-1/2 h-full flex flex-col items-center justify-center w-full"
                         appearance={{
                             button: { color: "GrayText" },
-                            uploadIcon: { height: "64px" },
+                            uploadIcon: { height: "64px", color: "greyg" },
                         }}
                         endpoint="resumeUploader"
                         headers={{
