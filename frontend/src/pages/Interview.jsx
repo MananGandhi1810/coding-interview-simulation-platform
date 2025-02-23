@@ -74,24 +74,8 @@ function Interview() {
                 </div>
 
                 <div className="w-full flex flex-col md:flex-row gap-10">
-                    <div className="flex-1">
-                        <h2 className="text-2xl font-semibold mb-4">
-                            Resume Analysis
-                        </h2>
-                        <div className="prose min-w-full">
-                            <Markdown>
-                                {interview.resumeAnalysis?.analysis}
-                            </Markdown>
-                        </div>
-                        <Badge variant="outline" className="mt-2">
-                            Score: {interview.resumeAnalysis?.rating}/10
-                        </Badge>
-                        <h2 className="text-2xl font-semibold my-4">
-                            Webcam Feed
-                        </h2>
-                        <div className="border rounded-lg overflow-hidden">
-                            <Webcam audio={false} className="w-full" />
-                        </div>
+                    <div className="border rounded-lg overflow-hidden flex-1 h-min">
+                        <Webcam audio={false} className="w-full" />
                     </div>
 
                     <div className="flex-1">
