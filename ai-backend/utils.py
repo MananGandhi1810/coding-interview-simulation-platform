@@ -53,9 +53,7 @@ def parse_resume(url: str, redis_client: Redis = None) -> str:
 
 def get_drive_download_url(url: str) -> str:
     groups = drive_regex.match(url).groups()
-    try:
-        print(groups[0])
-    except:
+    if len(groups) < 1:
         raise Exception("Invalid drive URL")
     return f"https://www.googleapis.com/drive/v3/files/{groups[0]}?key={os.getenv("GDRIVE_API_KEY")}&alt=media"
 
@@ -88,7 +86,6 @@ def ask_ai_model_cf(prompt: str) -> dict:
         )
     except Exception as e:
         print(e)
-        print(response.choices[0].message.content)
         return None
 
 
@@ -101,7 +98,6 @@ def push_to_db(id: str, analysis: str, question_answer: list) -> None:
         },
     )
 
-    print(question_answer)
     for qa in question_answer:
         res = db.questionanswer.create(
             {
@@ -110,7 +106,6 @@ def push_to_db(id: str, analysis: str, question_answer: list) -> None:
                 "expectedAnswer": qa.get("answer"),
             }
         )
-        print(res)
 
     db.interview.update(
         {

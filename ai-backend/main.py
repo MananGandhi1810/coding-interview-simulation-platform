@@ -9,12 +9,7 @@ from utils import (
 )
 
 
-redis_client = redis.StrictRedis(host="localhost", port=6379, db=0)
-channel = "new-interview"
-pubsub = redis_client.pubsub()
-pubsub.subscribe(channel)
-print(f"Subscribed to {channel}. Waiting for messages...")
-for message in pubsub.listen():
+def process_message(message):
     if message["type"] == "message":
         data = json.loads(message["data"])
         print(f"Received analysis request of {data.get("name")} ({data.get("id")})")
@@ -47,10 +42,10 @@ for message in pubsub.listen():
             This is the text in the user's resume:
             {resume_text}
             """
-            # cf_response = ask_ai_model_cf(prompt)
             response = ask_ai_model_gemini(prompt)
-            # print("Cloudflare:", cf_response)
             print("Gemini:", response)
+            # cf_response = ask_ai_model_cf(prompt)
+            # print("Cloudflare:", cf_response)
             # print("-------------------------------------------------------")
             # print("Cloudflare")
             # print("----")
@@ -75,3 +70,12 @@ for message in pubsub.listen():
         except Exception as e:
             print(e)
             push_error_to_db(data.get("id"))
+
+
+redis_client = redis.StrictRedis(host="localhost", port=6379, db=0)
+channel = "new-interview"
+pubsub = redis_client.pubsub()
+pubsub.subscribe(channel)
+print(f"Subscribed to {channel}. Waiting for messages...")
+for message in pubsub.listen():
+    process_message(message)
