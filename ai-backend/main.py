@@ -19,7 +19,7 @@ for message in pubsub.listen():
         data = json.loads(message["data"])
         print(f"Received analysis request of {data.get("name")} ({data.get("id")})")
         try:
-            resume_text = parse_resume(data.get("resumeUrl"))
+            resume_text = parse_resume(data.get("resumeUrl"), redis_client)
             print(f"Resume of {data.get("name")} parsed")
             prompt = f"""JSON MODE ON
             YOU ARE A RESUME ANALYSIS MODEL AND INTERVIEW QUESTION GENERATION MODEL.
