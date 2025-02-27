@@ -102,7 +102,6 @@ def push_to_db(id, analysis, question_answer):
             {
                 "interviewId": id,
                 "question": qa.get("question"),
-                "answer": qa.get("answer"),
                 "expectedAnswer": qa.get("answer"),
             }
         )

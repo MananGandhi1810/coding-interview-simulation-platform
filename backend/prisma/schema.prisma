@@ -64,7 +64,7 @@ model ResumeAnalysis {
 model QuestionAnswer {
     id             String    @id @default(cuid())
     question       String
-    answer         String
+    answer         String?
     expectedAnswer String
     interview      Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
     interviewId    String
