@@ -1,0 +1,56 @@
+name: cisp
+
+services:
+    backend:
+        image: ghcr.io/manangandhi1810/cisp-backend:latest
+        restart: unless-stopped
+        ports:
+            - 3000:3000/tcp
+        volumes:
+            - ./.env.prod:/usr/src/app/.env
+            # - /path/to/ssl/fullchain.pem:/usr/src/app/ssl/fullchain.pem
+            # - /path/to/ssl/privkey.pem:/usr/src/app/ssl/privkey.pem
+        command: sh -c "npx prisma migrate deploy && npm run start"
+
+    ai:
+        image: ghcr.io/manangandhi1810/cisp-ai-backend:latest
+        restart: unless-stopped
+        volumes:
+            - ./.env.prod:/app/.env
+
+    frontend:
+        image: ghcr.io/manangandhi1810/cisp-frontend:latest
+        restart: unless-stopped
+        ports:
+            - 80:3000/tcp
+        volumes:
+            - ./.env.public.prod:/usr/src/app/.env
+
+    postgresql:
+        image: bitnami/postgresql:latest
+        restart: unless-stopped
+        ports:
+            - "5432:5432/tcp"
+        volumes:
+            - cisp-data:/bitnami/postgresql
+        environment:
+            - POSTGRESQL_PGAUDIT_LOG=READ,WRITE
+            - POSTGRESQL_LOG_HOSTNAME=true
+            - POSTGRESQL_USERNAME=postgres
+            - POSTGRESQL_PASSWORD=postgres
+            - POSTGRESQL_DATABASE=cisp
+        labels:
+            - "com.centurylinklabs.watchtower.enable=false"
+
+    redis:
+        image: bitnami/redis:latest
+        restart: unless-stopped
+        ports:
+            - "6379:6379/tcp"
+        environment:
+            - ALLOW_EMPTY_PASSWORD=yes
+        labels:
+            - "com.centurylinklabs.watchtower.enable=false"
+
+volumes:
+    cisp-data:

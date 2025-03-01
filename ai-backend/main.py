@@ -42,30 +42,30 @@ def process_message(message):
             This is the text in the user's resume:
             {resume_text}
             """
-            response = ask_ai_model_gemini(prompt)
-            print("Gemini:", response)
-            # cf_response = ask_ai_model_cf(prompt)
-            # print("Cloudflare:", cf_response)
-            # print("-------------------------------------------------------")
-            # print("Cloudflare")
-            # print("----")
-            # print("Resume Analysis: ", cf_response["resume_analysis"]["analysis"])
-            # print("Rating: ", cf_response["resume_analysis"]["rating"])
-            # for i in range(len(cf_response["question_answer"])):
-            #     print("Question: ", cf_response["question_answer"][i]["question"])
-            #     print("Answer: ", cf_response["question_answer"][i]["answer"])
-            # print("-------------------------------------------------------")
+            cf_response = ask_ai_model_cf(prompt)
+            gemini_response = ask_ai_model_gemini(prompt)
+            print("Cloudflare:", cf_response)
+            print("Gemini:", gemini_response)
+            print("-------------------------------------------------------")
+            print("Cloudflare")
+            print("----")
+            print("Resume Analysis: ", cf_response["resume_analysis"]["analysis"])
+            print("Rating: ", cf_response["resume_analysis"]["rating"])
+            for i in range(len(cf_response["question_answer"])):
+                print("Question: ", cf_response["question_answer"][i]["question"])
+                print("Answer: ", cf_response["question_answer"][i]["answer"])
+            print("-------------------------------------------------------")
             print("-------------------------------------------------------")
             print("Gemini")
             print("----")
-            print("Resume Analysis: ", response["resume_analysis"]["analysis"])
-            print("Rating: ", response["resume_analysis"]["rating"])
-            for i in range(len(response["question_answer"])):
-                print("Question: ", response["question_answer"][i]["question"])
-                print("Answer: ", response["question_answer"][i]["answer"])
+            print("Resume Analysis: ", gemini_response["resume_analysis"]["analysis"])
+            print("Rating: ", gemini_response["resume_analysis"]["rating"])
+            for i in range(len(gemini_response["question_answer"])):
+                print("Question: ", gemini_response["question_answer"][i]["question"])
+                print("Answer: ", gemini_response["question_answer"][i]["answer"])
             print("-------------------------------------------------------")
             result = push_to_db(
-                data.get("id"), response["resume_analysis"], response["question_answer"]
+                data.get("id"), gemini_response["resume_analysis"], gemini_response["question_answer"]
             )
         except Exception as e:
             print(e)
