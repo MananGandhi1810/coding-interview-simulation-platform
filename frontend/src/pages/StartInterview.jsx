@@ -36,7 +36,6 @@ function StartInterview() {
                     },
                 })
                 .then((res) => res.data);
-            console.log(result);
 
             toast({
                 title: "Details submitted",
@@ -88,7 +87,6 @@ function StartInterview() {
                         }}
                         config={{ mode: "auto" }}
                         onClientUploadComplete={(res) => {
-                            console.log("File: ", res[0]);
                             setresumeUrl(res[0].ufsUrl);
                         }}
                         onUploadError={(error) => {

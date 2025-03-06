@@ -11,6 +11,7 @@ import openai
 from generated.prisma_client import Prisma
 import re
 from redis import Redis
+from mistralai import Mistral
 
 db = Prisma()
 db.connect()
@@ -23,6 +24,7 @@ cf_url = (
 )
 cf_model_name = "@cf/mistral/mistral-7b-instruct-v0.2-lora"
 cf_client = openai.Client(api_key=os.getenv("CF_API_KEY"), base_url=cf_url)
+mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
 
 drive_regex = re.compile(r"https://drive.google.com/file/d/(.*)/view")
 
@@ -84,6 +86,27 @@ def ask_ai_model_cf(prompt: str) -> dict:
         return json.loads(
             response.choices[0].message.content.strip("```").replace("\n", "")
         )
+    except Exception as e:
+        print(e)
+        return None
+
+
+def ask_ai_model_mistral(prompt: str) -> dict:
+    res = mistral_client.chat.complete(
+        model="mistral-small-latest",
+        messages=[
+            {
+                "content": prompt,
+                "role": "user",
+            },
+        ],
+        stream=False,
+        response_format={
+            "type": "json_object",
+        },
+    )
+    try:
+        return json.loads(res.choices[0].message.content.strip("```").replace("\n", ""))
     except Exception as e:
         print(e)
         return None
