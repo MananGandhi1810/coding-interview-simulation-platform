@@ -13,7 +13,7 @@ from utils import (
 def process_message(message):
     if message["type"] == "message":
         data = json.loads(message["data"])
-        print(f"Received analysis request of {data.get("name")} ({data.get("id")})")
+        print(f"Received analysis request of {data.get("name")} - {data.get("id")}")
         try:
             resume_text = parse_resume(data.get("resumeUrl"), redis_client)
             print(f"Resume of {data.get("name")} parsed")
