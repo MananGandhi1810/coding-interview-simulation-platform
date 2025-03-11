@@ -35,20 +35,14 @@ def parse_resume(url: str, redis_client: Redis = None) -> str:
     cache_key = f"resume:contents:{url}"
     if redis_client and redis_client.exists(cache_key):
         return redis_client.get(cache_key)
-    resume_data = requests.get(url)
-    if resume_data.status_code >= 400:
-        raise Exception("Invalid URL")
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf_file:
-        temp_pdf_file.write(resume_data.content)
-        temp_pdf_path = temp_pdf_file.name
-    images = convert_from_path(temp_pdf_path)
-    text_content = ""
-    for image in images:
-        image = image.point(lambda x: 0 if x < 100 else 255)
-        text = image_to_string(image)
-        text_content += text
-    if temp_pdf_path:
-        os.remove(temp_pdf_path)
+    response = mistral_client.ocr.process(
+        model="mistral-ocr-latest",
+        document={
+            "type": "document_url",
+            "document_url": url,
+        },
+    )
+    text_content = "\n".join([x.markdown for x in response.pages])
     redis_client.set(cache_key, text_content, ex=3 * 60 * 60)
     return text_content
 
