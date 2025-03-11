@@ -1,8 +1,4 @@
-import requests
-import tempfile
 import os
-from pytesseract import image_to_string
-from pdf2image import convert_from_path
 import google.generativeai as genai
 from google.generativeai.types.generation_types import GenerationConfig
 from dotenv import load_dotenv
