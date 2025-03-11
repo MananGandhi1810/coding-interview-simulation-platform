@@ -3,11 +3,14 @@ import google.generativeai as genai
 from google.generativeai.types.generation_types import GenerationConfig
 from dotenv import load_dotenv
 import json
-import openai
 from generated.prisma_client import Prisma
 import re
 from redis import Redis
 from mistralai import Mistral
+from azure.ai.inference import ChatCompletionsClient
+from azure.ai.inference.models import AssistantMessage, SystemMessage, UserMessage
+from azure.core.credentials import AzureKeyCredential
+
 
 db = Prisma()
 db.connect()
@@ -15,11 +18,12 @@ db.connect()
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-2.0-flash")
-cf_url = (
-    f"https://api.cloudflare.com/client/v4/accounts/{os.getenv("CF_ACCOUNT_ID")}/ai/v1"
+gh_url = "https://models.inference.ai.azure.com"
+gh_model_name = "Llama-3.3-70B-Instruct"
+gh_client = ChatCompletionsClient(
+    endpoint=gh_url,
+    credential=AzureKeyCredential(os.getenv("GH_MODELS_API_KEY")),
 )
-cf_model_name = "@cf/mistral/mistral-7b-instruct-v0.2-lora"
-cf_client = openai.Client(api_key=os.getenv("CF_API_KEY"), base_url=cf_url)
 mistral_client = Mistral(api_key=os.getenv("MISTRAL_API_KEY"))
 
 drive_regex = re.compile(r"https://drive.google.com/file/d/(.*)/view")
@@ -60,18 +64,8 @@ def ask_ai_model_gemini(prompt: str) -> dict:
     return json.loads(response.text)
 
 
-def ask_ai_model_cf(prompt: str) -> dict:
-    response = cf_client.beta.chat.completions.parse(
-        model=cf_model_name,
-        messages=[
-            {
-                "role": "user",
-                "content": prompt,
-            }
-        ],
-        max_completion_tokens=100000,
-        max_tokens=100000,
-    )
+def ask_ai_model_gh(prompt: str) -> dict:
+    response = gh_client.complete(messages=[UserMessage(prompt)], model=gh_model_name)
     try:
         return json.loads(
             response.choices[0].message.content.strip("```").replace("\n", "")

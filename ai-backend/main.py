@@ -3,11 +3,12 @@ import json
 from utils import (
     parse_resume,
     ask_ai_model_gemini,
-    ask_ai_model_cf,
+    ask_ai_model_gh,
     ask_ai_model_mistral,
     push_to_db,
     push_error_to_db,
 )
+import time
 
 
 def process_message(message):
@@ -43,38 +44,44 @@ def process_message(message):
             This is the text in the user's resume:
             {resume_text}
             """
-            # cf_response = ask_ai_model_cf(prompt)
+            start = time.time()
+            gh_response = ask_ai_model_gh(prompt)
+            gh_time = time.time() - start
+            print("GitHub Time:", gh_time)
+            start = time.time()
             gemini_response = ask_ai_model_gemini(prompt)
+            gemini_time = time.time() - start
+            print("Gemini Time:", gemini_time)
+            start = time.time()
             mistral_response = ask_ai_model_mistral(prompt)
-            # print("Cloudflare:", cf_response)
-            print("Gemini:", gemini_response)
-            print("Mistral:", mistral_response)
-            print("-------------------------------------------------------")
-            # print("Cloudflare")
+            mistral_time = time.time() - start
+            print("Mistral Time:", mistral_time)
+            # print("-------------------------------------------------------")
+            # print("GitHub")
             # print("----")
-            # print("Resume Analysis: ", cf_response["resume_analysis"]["analysis"])
-            # print("Rating: ", cf_response["resume_analysis"]["rating"])
-            # for i in range(len(cf_response["question_answer"])):
-            #     print("Question: ", cf_response["question_answer"][i]["question"])
-            #     print("Answer: ", cf_response["question_answer"][i]["answer"])
+            # print("Resume Analysis: ", gh_response["resume_analysis"]["analysis"])
+            # print("Rating: ", gh_response["resume_analysis"]["rating"])
+            # for i in range(len(gh_response["question_answer"])):
+            #     print("Question: ", gh_response["question_answer"][i]["question"])
+            #     print("Answer: ", gh_response["question_answer"][i]["answer"])
             # print("-------------------------------------------------------")
             # print("-------------------------------------------------------")
-            print("Gemini")
-            print("----")
-            print("Resume Analysis: ", gemini_response["resume_analysis"]["analysis"])
-            print("Rating: ", gemini_response["resume_analysis"]["rating"])
-            for i in range(len(gemini_response["question_answer"])):
-                print("Question: ", gemini_response["question_answer"][i]["question"])
-                print("Answer: ", gemini_response["question_answer"][i]["answer"])
-            print("-------------------------------------------------------")
-            print("-------------------------------------------------------")
-            print("Mistral")
-            print("----")
-            print("Resume Analysis: ", mistral_response["resume_analysis"]["analysis"])
-            print("Rating: ", mistral_response["resume_analysis"]["rating"])
-            for i in range(len(mistral_response["question_answer"])):
-                print("Question: ", mistral_response["question_answer"][i]["question"])
-                print("Answer: ", mistral_response["question_answer"][i]["answer"])
+            # print("Gemini")
+            # print("----")
+            # print("Resume Analysis: ", gemini_response["resume_analysis"]["analysis"])
+            # print("Rating: ", gemini_response["resume_analysis"]["rating"])
+            # for i in range(len(gemini_response["question_answer"])):
+            #     print("Question: ", gemini_response["question_answer"][i]["question"])
+            #     print("Answer: ", gemini_response["question_answer"][i]["answer"])
+            # print("-------------------------------------------------------")
+            # print("-------------------------------------------------------")
+            # print("Mistral")
+            # print("----")
+            # print("Resume Analysis: ", mistral_response["resume_analysis"]["analysis"])
+            # print("Rating: ", mistral_response["resume_analysis"]["rating"])
+            # for i in range(len(mistral_response["question_answer"])):
+            #     print("Question: ", mistral_response["question_answer"][i]["question"])
+            #     print("Answer: ", mistral_response["question_answer"][i]["answer"])
             result = push_to_db(
                 data.get("id"),
                 gemini_response["resume_analysis"],
