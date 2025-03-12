@@ -44,18 +44,18 @@ def process_message(message):
             This is the text in the user's resume:
             {resume_text}
             """
-            start = time.time()
-            gh_response = ask_ai_model_gh(prompt)
-            gh_time = time.time() - start
-            print("GitHub Time:", gh_time)
+            # start = time.time()
+            # gh_response = ask_ai_model_gh(prompt)
+            # gh_time = time.time() - start
+            # print("GitHub Time:", gh_time)
             start = time.time()
             gemini_response = ask_ai_model_gemini(prompt)
             gemini_time = time.time() - start
             print("Gemini Time:", gemini_time)
-            start = time.time()
-            mistral_response = ask_ai_model_mistral(prompt)
-            mistral_time = time.time() - start
-            print("Mistral Time:", mistral_time)
+            # start = time.time()
+            # mistral_response = ask_ai_model_mistral(prompt)
+            # mistral_time = time.time() - start
+            # print("Mistral Time:", mistral_time)
             # print("-------------------------------------------------------")
             # print("GitHub")
             # print("----")

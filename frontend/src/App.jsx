@@ -19,6 +19,7 @@ import NoPageFound from "@/pages/404.jsx";
 import StartInterview from "./pages/StartInterview";
 import InterviewStatus from "./pages/InterviewStatus";
 import Interview from "./pages/Interview";
+import InterviewResult from "./pages/InterviewResult";
 
 function App() {
     const initialState = {
@@ -148,6 +149,10 @@ function App() {
                 {
                     path: "/interview",
                     element: <Interview />,
+                },
+                {
+                    path: "/interview-result",
+                    element: <InterviewResult />,
                 },
                 {
                     path: "*",

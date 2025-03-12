@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "@/providers/auth-context";
 import axios from "axios";
-import { ArrowRight, Loader2, Mic, MicOff } from "lucide-react";
+import { ArrowRight, CircleCheck, Loader2, Mic, MicOff } from "lucide-react";
 import NoPageFound from "./404";
 import Webcam from "react-webcam";
 import useSpeechToText from "react-hook-speech-to-text";
@@ -16,6 +16,7 @@ function Interview() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [interview, setInterview] = useState(null);
     const [questionIndex, setQuestionIndex] = useState(0);
+    const navigate = useNavigate();
     const [userResponses, setUserResponses] = useState([]);
     const {
         error,
@@ -165,19 +166,32 @@ function Interview() {
                                 </p>
                             </div>
                         </div>
-                        <Button
-                            onClick={() => {
-                                setQuestionIndex((i) => i + 1);
-                            }}
-                            className="mt-2 px-5 self-end"
-                            disabled={
-                                questionIndex >=
-                                    interview.questionAnswer.length - 1 ||
-                                results.length == 0
-                            }
-                        >
-                            Next <ArrowRight className="ml-2" size={20} />
-                        </Button>
+                        {questionIndex < interview.questionAnswer.length - 1 ? (
+                            <Button
+                                onClick={() => {
+                                    setQuestionIndex((i) => i + 1);
+                                }}
+                                className="mt-2 px-5 self-end"
+                                disabled={
+                                    questionIndex >=
+                                        interview.questionAnswer.length - 1 ||
+                                    results.length == 0
+                                }
+                            >
+                                Next <ArrowRight className="ml-2" size={20} />
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={() => {
+                                    navigate("/interview-result", { state: { interviewId } });
+                                }}
+                                className="mt-2 px-5 self-end"
+                                disabled={results.length == 0}
+                            >
+                                Complete Interview{" "}
+                                <CircleCheck className="ml-2" size={20} />
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
