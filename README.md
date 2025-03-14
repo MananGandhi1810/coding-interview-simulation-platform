@@ -8,3 +8,10 @@ A comprehensive platform to simulate coding interviews. This project helps devel
 -   **Resume Analysis:** Automated resume parsing and evaluation.
 -   **AI-Powered Guidance:** Receive personalized feedback and interview questions generated through AI models.
 -   **Scalable Backend:** Built using Prisma and PostgreSQL for robust data management.
+
+## Tech Stack
+
+-   **Frontend:** React, Shadcn/ui, Tailwind CSS
+-   **Backend:** Node.js, Express, Python, Prisma
+-   **Database:** PostgreSQL, Redis
+-   **AI:** Gemini 2.0 Flash, Mistral Small, Mistral OCR, Llama 3.3 70B
