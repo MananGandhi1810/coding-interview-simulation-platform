@@ -1,32 +1,32 @@
 import redis
 import json
+import asyncio
 from utils import (
     parse_resume,
     ask_ai_model_gemini,
-    ask_ai_model_gh,
-    ask_ai_model_mistral,
     push_to_db,
     push_error_to_db,
+    init_db,
 )
 import time
 
 
-def process_message(message):
+async def process_message(message, redis_client):
     if message["type"] == "message":
         data = json.loads(message["data"])
-        print(f"Received analysis request of {data.get("name")} - {data.get("id")}")
+        print(f"Received analysis request of {data.get('name')} - {data.get('id')}")
         try:
-            resume_text = parse_resume(data.get("resumeUrl"), redis_client)
-            print(f"Resume of {data.get("name")} parsed")
+            resume_text = await parse_resume(data.get("resumeUrl"), redis_client)
+            print(f"Resume of {data.get('name')} parsed")
             prompt = f"""JSON MODE ON
             YOU ARE A RESUME ANALYSIS MODEL AND INTERVIEW QUESTION GENERATION MODEL.
             Also create technical questions and expected answers based on the role, as if you are an interviewer asking those to a candidate.
             ONLY USE JSON, NO other format.
             DO NOT use MarkDown outside the JSON content.
             When replying, ONLY answer in the JSON schema no other output or text outside the JSON.
-            The user's name is: {data.get("name")}
-            The user is applying for: {data.get("role")} at {data.get("company")}
-            The user has an experience of {data.get("yoe")} years
+            The user's name is: {data.get('name')}
+            The user is applying for: {data.get('role')} at {data.get('company')}
+            The user has an experience of {data.get('yoe')} years
             GIVE FEEDBACK AND CONSTRUCTIVE CRITICISM TO THE USER.
             THE RATING OF THE RESUME MUST BE OUT OF 10.
             This resume is parsed from a PDF file using OCR, so there might be inconsistencies. Consider those when replying.
@@ -44,58 +44,51 @@ def process_message(message):
             This is the text in the user's resume:
             {resume_text}
             """
-            # start = time.time()
-            # gh_response = ask_ai_model_gh(prompt)
-            # gh_time = time.time() - start
-            # print("GitHub Time:", gh_time)
             start = time.time()
-            gemini_response = ask_ai_model_gemini(prompt)
+            gemini_response = await ask_ai_model_gemini(prompt)
             gemini_time = time.time() - start
             print("Gemini Time:", gemini_time)
-            # start = time.time()
-            # mistral_response = ask_ai_model_mistral(prompt)
-            # mistral_time = time.time() - start
-            # print("Mistral Time:", mistral_time)
-            # print("-------------------------------------------------------")
-            # print("GitHub")
-            # print("----")
-            # print("Resume Analysis: ", gh_response["resume_analysis"]["analysis"])
-            # print("Rating: ", gh_response["resume_analysis"]["rating"])
-            # for i in range(len(gh_response["question_answer"])):
-            #     print("Question: ", gh_response["question_answer"][i]["question"])
-            #     print("Answer: ", gh_response["question_answer"][i]["answer"])
-            # print("-------------------------------------------------------")
-            # print("-------------------------------------------------------")
-            # print("Gemini")
-            # print("----")
-            # print("Resume Analysis: ", gemini_response["resume_analysis"]["analysis"])
-            # print("Rating: ", gemini_response["resume_analysis"]["rating"])
-            # for i in range(len(gemini_response["question_answer"])):
-            #     print("Question: ", gemini_response["question_answer"][i]["question"])
-            #     print("Answer: ", gemini_response["question_answer"][i]["answer"])
-            # print("-------------------------------------------------------")
-            # print("-------------------------------------------------------")
-            # print("Mistral")
-            # print("----")
-            # print("Resume Analysis: ", mistral_response["resume_analysis"]["analysis"])
-            # print("Rating: ", mistral_response["resume_analysis"]["rating"])
-            # for i in range(len(mistral_response["question_answer"])):
-            #     print("Question: ", mistral_response["question_answer"][i]["question"])
-            #     print("Answer: ", mistral_response["question_answer"][i]["answer"])
-            result = push_to_db(
+            result = await push_to_db(
                 data.get("id"),
                 gemini_response["resume_analysis"],
                 gemini_response["question_answer"],
             )
         except Exception as e:
             print(e)
-            push_error_to_db(data.get("id"))
+            await push_error_to_db(data.get("id"))
 
 
-redis_client = redis.StrictRedis(host="localhost", port=6379, db=0)
-channel = "new-interview"
-pubsub = redis_client.pubsub()
-pubsub.subscribe(channel)
-print(f"Subscribed to {channel}. Waiting for messages...")
-for message in pubsub.listen():
-    process_message(message)
+async def process_messages():
+    tasks = set()
+    redis_client = redis.Redis(host="localhost", port=6379, db=0)
+    pubsub = redis_client.pubsub()
+    pubsub.subscribe("new-interview")
+    print(f"Subscribed to new-interview. Waiting for messages...")
+
+    try:
+        while True:
+            message = pubsub.get_message()
+            if message:
+                task = asyncio.create_task(process_message(message, redis_client))
+                tasks.add(task)
+                task.add_done_callback(tasks.discard)
+
+            done_tasks = {t for t in tasks if t.done()}
+            for task in done_tasks:
+                tasks.discard(task)
+
+            await asyncio.sleep(0.1)
+    finally:
+        if tasks:
+            await asyncio.gather(*tasks)
+        pubsub.close()
+        redis_client.close()
+
+
+async def main():
+    await init_db()
+    await process_messages()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
