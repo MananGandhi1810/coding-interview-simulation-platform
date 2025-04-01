@@ -9,6 +9,7 @@ import debug from "debug";
 import http from "http";
 import https from "https";
 import fs from "fs";
+import { onQueueMessage } from "../utils/queue-manager.js";
 
 /**
  * Get port from environment and store in Express.

@@ -129,7 +129,12 @@ const getInterviewHandler = async (req, res) => {
                 },
             },
             resumeAnalysis: true,
-            codeProblem: true,
+            interviewCodeProblems: {
+                select: {
+                    codeProblem: true,
+                    codeProblemId: true,
+                },
+            },
         },
     });
 

@@ -7,6 +7,7 @@ from generated.prisma_client import Prisma
 import re
 from redis import Redis
 from mistralai import Mistral
+import random
 
 db = Prisma()
 
@@ -49,7 +50,7 @@ async def get_drive_download_url(url: str) -> str:
     return f"https://www.googleapis.com/drive/v3/files/{groups[0]}?key={os.getenv('GDRIVE_API_KEY')}&alt=media"
 
 
-async def ask_ai_model_gemini(prompt: str) -> dict:
+async def prompt_ai_model(prompt: str) -> dict:
     response = await gemini_model.generate_content_async(
         prompt,
         generation_config=GenerationConfig(
@@ -59,7 +60,22 @@ async def ask_ai_model_gemini(prompt: str) -> dict:
     return json.loads(response.text)
 
 
-async def push_to_db(id: str, analysis: dict, question_answer: list) -> None:
+async def get_code_problems(difficulty: str) -> list[str]:
+    if difficulty not in ["EASY", "MEIDUM", "HARD"]:
+        raise "Invalid difficulty - " + difficulty
+    problems = await db.codeproblem.find_many(
+        where={"difficulty": difficulty},
+    )
+    if len(problems) < 3:
+        raise "Not enough problems to choose from"
+    problems = random.choices(problems, k=3)
+    problems = list(map(lambda x: x.id, problems))
+    return problems
+
+
+async def push_to_db(
+    id: str, analysis: dict, question_answer: list[int], code_problems: list[str]
+) -> None:
     res = await db.resumeanalysis.create(
         {
             "interviewId": id,
@@ -76,6 +92,13 @@ async def push_to_db(id: str, analysis: dict, question_answer: list) -> None:
                 "expectedAnswer": qa.get("answer"),
             }
         )
+
+    await db.interviewcodeproblem.create_many(
+        data=[
+            {"codeProblemId": problem_id, "interviewId": id}
+            for problem_id in code_problems
+        ]
+    )
 
     await db.interview.update(
         {

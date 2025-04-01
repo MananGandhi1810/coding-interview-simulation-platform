@@ -22,6 +22,12 @@ enum SubmissionStatus {
     TIMELIMITEXCEEDED
 }
 
+enum ProblemDifficulty {
+    EASY
+    MEDIUM
+    HARD
+}
+
 model User {
     id                String       @id @default(cuid())
     email             String       @unique
@@ -36,20 +42,20 @@ model User {
 }
 
 model Interview {
-    id               String              @id @default(cuid())
-    company          String
-    role             String
-    yoe              Int
-    resumeUrl        String
-    state            DataProcessingState @default(QUEUED)
-    resumeAnalysisId String?
-    resumeAnalysis   ResumeAnalysis?
-    questionAnswer   QuestionAnswer[]
-    codeProblem      CodeProblem[]
-    userId           String
-    user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-    updatedAt        DateTime            @updatedAt
-    createdAt        DateTime            @default(now())
+    id                    String                 @id @default(cuid())
+    company               String
+    role                  String
+    yoe                   Int
+    resumeUrl             String
+    state                 DataProcessingState    @default(QUEUED)
+    resumeAnalysisId      String?
+    resumeAnalysis        ResumeAnalysis?
+    questionAnswer        QuestionAnswer[]
+    interviewCodeProblems InterviewCodeProblem[]
+    userId                String
+    user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    updatedAt             DateTime               @updatedAt
+    createdAt             DateTime               @default(now())
 }
 
 model ResumeAnalysis {
@@ -92,13 +98,22 @@ model Submission {
     createdAt          DateTime         @default(now())
 }
 
+model InterviewCodeProblem {
+    id            String      @id @default(cuid())
+    interviewId   String
+    codeProblem   CodeProblem @relation(fields: [codeProblemId], references: [id], onDelete: Cascade)
+    codeProblemId String
+    Interview     Interview   @relation(fields: [interviewId], references: [id])
+}
+
 model CodeProblem {
-    id               String       @id @default(cuid())
-    problemStatement String
-    submissions      Submission[]
-    testCases        TestCases[]
-    Interview        Interview?   @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-    interviewId      String?
+    id                   String                 @id @default(cuid())
+    title                String
+    description          String
+    difficulty           ProblemDifficulty      @default(EASY)
+    submissions          Submission[]
+    testCases            TestCases[]
+    InterviewCodeProblem InterviewCodeProblem[]
 }
 
 model TestCases {

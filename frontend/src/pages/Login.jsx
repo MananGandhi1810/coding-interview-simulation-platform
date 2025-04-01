@@ -99,8 +99,8 @@ function Login() {
                     </CardContent>
                     <CardFooter className="flex justify-end flex-col mt-2 pb-6">
                         {loading ? (
-                            <Button disabled>
-                                <Loader2 className="mr-2 h-4 w-full animate-spin" />
+                            <Button className="w-full" disabled>
+                                <Loader2 className="mr-2 h-4 animate-spin" />
                                 Logging in
                             </Button>
                         ) : (

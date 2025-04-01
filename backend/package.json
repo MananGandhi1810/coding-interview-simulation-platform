@@ -9,13 +9,16 @@
         "docker:build": "docker build -t express-app:latest .",
         "test": "vitest"
     },
+    "prisma": {
+        "seed": "node prisma/seed.js"
+    },
     "type": "module",
     "keywords": [],
     "author": "",
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "@prisma/client": "^5.19.0",
+        "@prisma/client": "^6.5.0",
         "argon2": "^0.41.0",
         "bcrypt": "^5.1.1",
         "cors": "^2.8.5",
