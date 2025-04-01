@@ -5,7 +5,7 @@ import sendEmail from "../utils/email.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { createClient } from "redis";
-import { generateOtp } from "../utils/generate_otp.js";
+import { generateOtp } from "../utils/generate-otp.js";
 
 dotenv.config();
 const jwtSecret = process.env.SECRET_KEY;
