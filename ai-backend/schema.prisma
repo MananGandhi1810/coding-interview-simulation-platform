@@ -18,10 +18,10 @@ enum DataProcessingState {
 }
 
 enum SubmissionStatus {
-    QUEUED
-    EXECUTING
-    EXECUTED
-    TIMELIMITEXCEEDED
+    Queued
+    Executing
+    Executed
+    TimeLimitExceeded
 }
 
 enum ProblemDifficulty {
@@ -58,6 +58,7 @@ model Interview {
     user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
     updatedAt             DateTime               @updatedAt
     createdAt             DateTime               @default(now())
+    Submission            Submission[]
 }
 
 model ResumeAnalysis {
@@ -88,7 +89,7 @@ model Submission {
     success            Boolean?
     code               String
     language           String
-    status             SubmissionStatus @default(QUEUED)
+    status             SubmissionStatus @default(Queued)
     problemStatementId String
     output             String?
     execTime           Int?
@@ -96,6 +97,8 @@ model Submission {
     totalTestCases     Int?
     codeProblem        CodeProblem      @relation(fields: [problemStatementId], references: [id], onDelete: Cascade)
     user               User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+    interview          Interview?       @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+    interviewId        String?
     updatedAt          DateTime         @updatedAt
     createdAt          DateTime         @default(now())
 }

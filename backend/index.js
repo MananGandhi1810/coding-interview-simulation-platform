@@ -2,6 +2,7 @@ import express from "express";
 import authRouter from "./router/auth.js";
 import interviewRouter from "./router/interview.js";
 import codeRouter from "./router/code.js";
+import problemStatementRouter from "./router/problem-statement.js";
 import logger from "morgan";
 import cors from "cors";
 
@@ -19,6 +20,7 @@ app.use(
 app.use("/auth", authRouter);
 app.use("/interview", interviewRouter);
 app.use("/code", codeRouter);
+app.use("/problem-statement", problemStatementRouter);
 
 app.use(function (req, res, next) {
     res.status(404).json({

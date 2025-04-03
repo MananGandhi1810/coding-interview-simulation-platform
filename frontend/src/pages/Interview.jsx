@@ -183,12 +183,14 @@ function Interview() {
                         ) : (
                             <Button
                                 onClick={() => {
-                                    navigate("/interview-result", { state: { interviewId } });
+                                    navigate("/code-interview", {
+                                        state: { interviewId },
+                                    });
                                 }}
                                 className="mt-2 px-5 self-end"
                                 disabled={results.length == 0}
                             >
-                                Complete Interview{" "}
+                                Go to Code Interview{" "}
                                 <CircleCheck className="ml-2" size={20} />
                             </Button>
                         )}
