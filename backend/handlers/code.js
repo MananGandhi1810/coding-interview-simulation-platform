@@ -25,7 +25,7 @@ const queueCodeHandler = async (req, res, isTempRun = false) => {
     const problemStatement = await prisma.codeProblem.findUnique({
         where: { id: problemStatementId },
         select: {
-            _count: { select: { testCase: true } },
+            _count: { select: { testCases: true } },
         },
     });
     if (!problemStatement) {
@@ -35,8 +35,15 @@ const queueCodeHandler = async (req, res, isTempRun = false) => {
             data: null,
         });
     }
-    const { code, customTestcase, keystrokeTimings } = req.body;
+    const { code, customTestcase, interviewId } = req.body;
     var containsTestCase = false;
+    if (!interviewId) {
+        return res.status(400).json({
+            success: false,
+            message: "Interview ID is required",
+            data: null,
+        });
+    }
     if (!code) {
         return res.status(400).json({
             success: false,
@@ -53,9 +60,8 @@ const queueCodeHandler = async (req, res, isTempRun = false) => {
             problemStatementId,
             language,
             code,
-            keystrokeTimings: keystrokeTimings ?? [],
             userId: req.user.id,
-            totalTestCases: problemStatement._count.testCase,
+            totalTestCases: problemStatement._count.testCases,
         };
         if (!isTempRun) {
             const submission = await prisma.submission.create({
@@ -73,6 +79,7 @@ const queueCodeHandler = async (req, res, isTempRun = false) => {
             code,
             language,
             problemStatementId,
+            interviewId,
             submissionId: submissionId,
             userId: req.user.id,
             temp: isTempRun,

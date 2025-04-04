@@ -42,9 +42,6 @@ const createDockerContainer = async (language, code, input) => {
         Image: process.env.CODE_RUNNER_CONTAINER,
         Cmd: getExecutionCommand(language, code, input),
         Tty: true,
-        HostConfig: {
-            NetworkMode: "online-ide_no-internet",
-        },
     });
 };
 
