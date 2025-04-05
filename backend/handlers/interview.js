@@ -152,4 +152,52 @@ const getInterviewHandler = async (req, res) => {
     });
 };
 
-export { newInterviewHandler, getInterviewStatusHandler, getInterviewHandler };
+const endInterviewHandler = async (req, res) => {
+    const { interviewId } = req.params;
+
+    if (!interviewId) {
+        return res.status(400).json({
+            success: false,
+            message: "Interview ID is required",
+            data: null,
+        });
+    }
+
+    const interview = await prisma.interview.findUnique({
+        where: {
+            id: interviewId,
+            userId: req.user.id,
+        },
+    });
+
+    if (!interview) {
+        return res.status(404).json({
+            success: false,
+            message: "Interview not found",
+            data: null,
+        });
+    }
+
+    sendQueueMessage("end-interview", JSON.stringify({ interviewId }));
+    await prisma.interview.update({
+        where: {
+            id: interviewId,
+        },
+        data: {
+            hasEnded: true,
+        },
+    });
+
+    return res.json({
+        success: true,
+        message: "Interview ended successfully",
+        data: null,
+    });
+};
+
+export {
+    newInterviewHandler,
+    getInterviewStatusHandler,
+    getInterviewHandler,
+    endInterviewHandler,
+};

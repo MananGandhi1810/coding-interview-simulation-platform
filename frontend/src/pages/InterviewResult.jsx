@@ -21,35 +21,34 @@ function InterviewResult() {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchInterviewData = async () => {
-            try {
-                const response = await axios.get(
-                    `${process.env.SERVER_URL}/interview/${interviewId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${user.token}`,
-                        },
+    const fetchInterviewData = async () => {
+        try {
+            const response = await axios.get(
+                `${process.env.SERVER_URL}/interview/${interviewId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${user.token}`,
                     },
-                );
-                if (response.data.success) {
-                    setInterview(response.data.data.interview);
-                } else {
-                    setError(
-                        response.data.message ||
-                            "Failed to fetch interview data",
-                    );
-                }
-            } catch (err) {
+                },
+            );
+            if (response.data.success) {
+                setInterview(response.data.data.interview);
+            } else {
                 setError(
-                    err.response?.data?.message ||
-                        "An error occurred while fetching the data",
+                    response.data.message || "Failed to fetch interview data",
                 );
-            } finally {
-                setLoading(false);
             }
-        };
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                    "An error occurred while fetching the data",
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         if (interviewId) {
             fetchInterviewData();
         } else {
@@ -132,9 +131,7 @@ function InterviewResult() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="prose min-w-full">
-                        <Markdown>
-                            {resumeAnalysis.analysis}
-                        </Markdown>
+                        <Markdown>{resumeAnalysis.analysis}</Markdown>
                     </div>
                 </CardContent>
             </Card>

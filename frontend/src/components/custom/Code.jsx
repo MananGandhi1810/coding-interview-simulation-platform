@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useRef } from "react";
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
     ResizableHandle,
     ResizablePanel,
@@ -7,14 +7,7 @@ import {
 } from "@/components/ui/resizable.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import Editor from "@monaco-editor/react";
-import {
-    CornerUpRight,
-    Edit,
-    Loader2,
-    Play,
-    SendHorizontal,
-    X,
-} from "lucide-react";
+import { CornerUpRight, Loader2, Play } from "lucide-react";
 import axios from "axios";
 import AuthContext from "@/providers/auth-context";
 import {
@@ -46,7 +39,6 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import htmlToMarkdown from "@wcj/html-to-markdown";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -300,7 +292,7 @@ function Code({ problemStatement, problemId, code, setCode, interviewId }) {
                         className="border h-full w-full"
                     >
                         <ResizablePanel defaultSize={100}>
-                            <ScrollArea className="flex h-full w-full flex-col gap-5 pb-14">
+                            <ScrollArea className="flex h-full w-full flex-col gap-5">
                                 <p className="prose dark:prose-invert min-w-full p-6">
                                     <Markdown>
                                         {problemStatement.description}

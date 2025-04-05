@@ -17,6 +17,13 @@ enum DataProcessingState {
     ERROR
 }
 
+enum ResultProcessingState {
+    PENDING
+    PROCESSING
+    PROCESSED
+    ERROR
+}
+
 enum SubmissionStatus {
     Queued
     Executing
@@ -49,7 +56,9 @@ model Interview {
     role                  String
     yoe                   Int
     resumeUrl             String
+    hasEnded              Boolean                @default(false)
     state                 DataProcessingState    @default(QUEUED)
+    resultState           ResultProcessingState  @default(PENDING)
     resumeAnalysisId      String?
     resumeAnalysis        ResumeAnalysis?
     questionAnswer        QuestionAnswer[]
