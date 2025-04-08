@@ -21,6 +21,7 @@ import InterviewStatus from "./pages/InterviewStatus";
 import Interview from "./pages/Interview";
 import InterviewResult from "./pages/InterviewResult";
 import CodeInterview from "./pages/CodeInterview";
+import ResultStatus from "./pages/ResultStatus";
 
 function App() {
     const initialState = {
@@ -150,6 +151,10 @@ function App() {
                 {
                     path: "/interview",
                     element: <Interview />,
+                },
+                {
+                    path: "/result-status",
+                    element: <ResultStatus />,
                 },
                 {
                     path: "/interview-result",

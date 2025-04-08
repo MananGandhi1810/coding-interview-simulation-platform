@@ -206,7 +206,6 @@ function Code({
                         description: `All testcases passed. Executed in ${res.data.execTime}ms`,
                     });
                     setShowDialog(true);
-                    // Update submission status when code is successful
                     if (updateSubmissionStatus) {
                         updateSubmissionStatus(problemId, true);
                     }

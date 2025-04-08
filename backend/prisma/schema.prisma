@@ -59,6 +59,10 @@ model Interview {
     resultState           ResultProcessingState  @default(PENDING)
     resumeAnalysisId      String?
     resumeAnalysis        ResumeAnalysis?
+    qaAnalysisId          String?
+    qaAnalysis            QaAnalysis[]
+    codeAnalysisId        String?
+    codeAnalysis          CodeAnalysis[]
     questionAnswer        QuestionAnswer[]
     interviewCodeProblems InterviewCodeProblem[]
     userId                String
@@ -78,15 +82,39 @@ model ResumeAnalysis {
     createdAt   DateTime  @default(now())
 }
 
+model QaAnalysis {
+    id               String         @id @default(cuid())
+    correctness      String
+    explanation      String
+    questionAnswerId String
+    questionAnswer   QuestionAnswer @relation(fields: [questionAnswerId], references: [id], onDelete: Cascade)
+    updatedAt        DateTime       @updatedAt
+    createdAt        DateTime       @default(now())
+    Interview        Interview      @relation(fields: [interviewId], references: [id])
+    interviewId      String
+}
+
+model CodeAnalysis {
+    id            String      @id @default(cuid())
+    review        String
+    interview     Interview   @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+    interviewId   String
+    updatedAt     DateTime    @updatedAt
+    createdAt     DateTime    @default(now())
+    codeProblemId String
+    codeProblem   CodeProblem @relation(fields: [codeProblemId], references: [id], onDelete: Cascade)
+}
+
 model QuestionAnswer {
-    id             String    @id @default(cuid())
+    id             String       @id @default(cuid())
     question       String
     answer         String?
     expectedAnswer String
-    interview      Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+    interview      Interview    @relation(fields: [interviewId], references: [id], onDelete: Cascade)
     interviewId    String
-    updatedAt      DateTime  @updatedAt
-    createdAt      DateTime  @default(now())
+    updatedAt      DateTime     @updatedAt
+    createdAt      DateTime     @default(now())
+    QaAnalysis     QaAnalysis[]
 }
 
 model Submission {
@@ -126,6 +154,7 @@ model CodeProblem {
     submissions          Submission[]
     testCases            TestCases[]
     InterviewCodeProblem InterviewCodeProblem[]
+    CodeAnalysis         CodeAnalysis[]
 }
 
 model TestCases {

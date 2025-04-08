@@ -170,7 +170,7 @@ function CodeInterview() {
             if (!result.success) {
                 setErrorMessage("Could not end interview");
             }
-            navigate("/interview-result", { state: { interviewId } });
+            navigate("/result-status", { state: { interviewId } });
         } catch (e) {
             setErrorMessage("Could not end interview");
         }

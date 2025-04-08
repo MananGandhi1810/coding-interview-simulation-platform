@@ -145,3 +145,37 @@ async def push_error_to_db(id: str) -> None:
             "id": id,
         },
     )
+
+
+async def set_interview_result_state(id: str, status: str) -> None:
+    await db.interview.update(
+        where={"id": id},
+        data={
+            "resultState": status,
+        },
+    )
+
+
+async def push_analysis_to_db(qa_analysis, code_analysis, id):
+    qa_analysis_records = [
+        {
+            "correctness": qa.get("correctness"),
+            "explanation": qa.get("explanation"),
+            "questionAnswerId": qa.get("id"),
+            "interviewId": id,
+        }
+        for qa in qa_analysis
+    ]
+    await db.qaanalysis.create_many(data=qa_analysis_records)
+
+    code_analysis_records = [
+        {
+            "review": code.get("review"),
+            "codeProblemId": code.get("id"),
+            "interviewId": id,
+        }
+        for code in code_analysis
+    ]
+    await db.codeanalysis.create_many(data=code_analysis_records)
+
+    await set_interview_result_state(id, "PROCESSED")

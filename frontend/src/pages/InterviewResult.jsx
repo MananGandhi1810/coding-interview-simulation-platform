@@ -2,11 +2,15 @@ import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import AuthContext from "@/providers/auth-context";
-import Markdown from "react-markdown";
+import ResumeTab from "@/components/custom/ResumeTab";
+import QuestionsTab from "@/components/custom/QuestionsTab";
+import CodingTab from "@/components/custom/CodingTab";
 
 function InterviewResult() {
     const [interview, setInterview] = useState(null);
@@ -57,10 +61,8 @@ function InterviewResult() {
         return (
             <div className="container mx-auto px-4 py-16 flex flex-col items-center gap-4">
                 <Card className="w-full max-w-3xl">
-                    <CardHeader>
+                    <CardContent className="space-y-4 p-6">
                         <Skeleton className="h-8 w-3/4" />
-                    </CardHeader>
-                    <CardContent className="space-y-4">
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-5/6" />
                         <Skeleton className="h-4 w-4/6" />
@@ -84,13 +86,13 @@ function InterviewResult() {
         );
     }
 
-    if (!interview || !interview.resumeAnalysis) {
+    if (!interview) {
         return (
             <div className="container mx-auto px-4 py-16 flex flex-col items-center gap-4">
                 <Alert variant="warning" className="max-w-2xl">
                     <AlertTitle>No Data</AlertTitle>
                     <AlertDescription>
-                        No resume analysis data is available for this interview.
+                        No data is available for this interview.
                     </AlertDescription>
                 </Alert>
                 <Button onClick={() => navigate(-1)} variant="default">
@@ -100,11 +102,21 @@ function InterviewResult() {
         );
     }
 
-    const { resumeAnalysis } = interview;
+    const {
+        resumeAnalysis,
+        questionAnswer = [],
+        codeAnalysis = [],
+        interviewCodeProblems = [],
+    } = interview;
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">Interview Results</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Interview Results</h1>
+                <Button onClick={() => navigate("/")} variant="outline">
+                    Back to Home
+                </Button>
+            </div>
 
             <Card className="mb-8">
                 <CardContent className="p-6">
@@ -116,21 +128,60 @@ function InterviewResult() {
                             <p className="text-muted-foreground">
                                 Experience: {interview.yoe} years
                             </p>
+                            <div className="mt-2">
+                                <Badge
+                                    variant={
+                                        interview.state === "PROCESSED"
+                                            ? "success"
+                                            : "secondary"
+                                    }
+                                >
+                                    {interview.state}
+                                </Badge>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-muted-foreground">
+                                Completed on:{" "}
+                                {new Date(
+                                    interview.updatedAt,
+                                ).toLocaleDateString()}
+                            </p>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <Card className="mb-8">
-                <CardHeader>
-                    <CardTitle>Resume Analysis</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="prose min-w-full">
-                        <Markdown>{resumeAnalysis.analysis}</Markdown>
-                    </div>
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="resume" className="w-full">
+                <TabsList className="mb-4">
+                    <TabsTrigger value="resume">Resume Analysis</TabsTrigger>
+                    <TabsTrigger value="questions">
+                        Interview Questions
+                    </TabsTrigger>
+                    {interviewCodeProblems?.length > 0 && (
+                        <TabsTrigger value="coding">
+                            Coding Problems
+                        </TabsTrigger>
+                    )}
+                </TabsList>
+
+                <TabsContent value="resume">
+                    <ResumeTab resumeAnalysis={resumeAnalysis} />
+                </TabsContent>
+
+                <TabsContent value="questions">
+                    <QuestionsTab questionAnswers={questionAnswer} />
+                </TabsContent>
+
+                {interviewCodeProblems?.length > 0 && (
+                    <TabsContent value="coding">
+                        <CodingTab
+                            codeProblems={interviewCodeProblems}
+                            codeAnalysis={codeAnalysis}
+                        />
+                    </TabsContent>
+                )}
+            </Tabs>
         </div>
     );
 }

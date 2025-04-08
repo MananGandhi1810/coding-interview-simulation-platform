@@ -44,14 +44,6 @@ function Interview() {
         }
     }, []);
 
-    useEffect(() => {
-        if (results.length > 0) {
-            const response = results.map((x) => x.transcript).join("");
-            setCurrentResponse(response);
-            submitAnswer(response);
-        }
-    }, [results]);
-
     const submitAnswer = async (answer) => {
         if (!answer || answer.trim() === "" || !interview) return;
 

@@ -100,6 +100,7 @@ const getInterviewStatusHandler = async (req, res) => {
         message: "Interview status retrieved",
         data: {
             state: interview.state,
+            resultState: interview.resultState,
             resumeAnalysisId: interview.resumeAnalysisId,
         },
     });
@@ -126,11 +127,14 @@ const getInterviewHandler = async (req, res) => {
                 select: {
                     id: true,
                     question: true,
+                    answer: true,
                 },
             },
+            codeAnalysis: true,
             resumeAnalysis: true,
             interviewCodeProblems: {
                 select: {
+                    codeProblem: true,
                     codeProblemId: true,
                 },
             },
@@ -181,7 +185,8 @@ const submitQaHandler = async (req, res) => {
         });
     }
 
-    if (question.answer) {
+    if (question.answer !== null) {
+        console.log(question);
         return res.status(400).json({
             success: false,
             message: "Answer already submitted",

@@ -9,6 +9,8 @@ from utils import (
     push_error_to_db,
     init_db,
     get_interview_responses,
+    push_analysis_to_db,
+    set_interview_result_state,
 )
 import time
 
@@ -69,6 +71,7 @@ async def analyse_qa(qa_response):
         id: {qa['id']}
         question: {qa['question']}
         answer: {qa['answer']}
+        expectedanswer: {qa['expectedAnswer']}
         """
     prompt = f"""JSON MODE ON
     This user has been asked questions and has given their answers:
@@ -110,7 +113,6 @@ async def analyse_code(code_response):
         - analysis (list)
             - id
             - review: str
-            - improvements: str
     """
     analysis = await prompt_ai_model(prompt)
     return analysis
@@ -137,21 +139,21 @@ async def process_message(message, redis_client):
                 print(e)
                 await push_error_to_db(data.get("id"))
         elif channel == "end-interview":
-            print(f"Received interview end request of {data.get("interviewId")}")
+            interviewId = data.get("interviewId")
+            print(f"Received interview end request of {interviewId}")
             try:
-                interview_response = await get_interview_responses(
-                    data.get("interviewId")
-                )
-                print(interview_response)
+                await set_interview_result_state(interviewId, "PROCESSING")
+                interview_response = await get_interview_responses(interviewId)
                 qa_analysis, code_analysis = await asyncio.gather(
                     analyse_qa(interview_response["questionAnswer"]),
                     analyse_code(interview_response["code"]),
                 )
                 print("QA Analysis: " + json.dumps(qa_analysis, indent=2))
                 print("Code Analysis: " + json.dumps(code_analysis, indent=2))
-                # push_analysis_to_db(qa_analysis, code_analysis, data.get("interviewId"))
+                await push_analysis_to_db(qa_analysis['analysis'], code_analysis['analysis'], interviewId)
             except Exception as e:
                 print(e)
+                await set_interview_result_state(interviewId, "ERROR")
 
 
 async def process_messages():
@@ -166,7 +168,6 @@ async def process_messages():
         while True:
             message = pubsub.get_message()
             if message:
-                print(message)
                 task = asyncio.create_task(process_message(message, redis_client))
                 tasks.add(task)
                 task.add_done_callback(tasks.discard)
