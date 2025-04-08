@@ -6,6 +6,7 @@ import {
     newInterviewHandler,
     getInterviewHandler,
     endInterviewHandler,
+    submitQaHandler,
 } from "../handlers/interview.js";
 import { checkAuthForUpload } from "../middlewares/upload-auth.js";
 
@@ -41,6 +42,7 @@ router.use(
 router.post("/new", checkAuth, newInterviewHandler);
 router.get("/:interviewId/status", checkAuth, getInterviewStatusHandler);
 router.get("/:interviewId", checkAuth, getInterviewHandler);
+router.post("/submitQa/:interviewId", checkAuth, submitQaHandler);
 router.post("/end/:interviewId", checkAuth, endInterviewHandler);
 
 export default router;

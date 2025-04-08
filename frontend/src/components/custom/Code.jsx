@@ -42,7 +42,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 
-function Code({ problemStatement, problemId, code, setCode, interviewId }) {
+function Code({
+    problemStatement,
+    problemId,
+    code,
+    setCode,
+    interviewId,
+    updateSubmissionStatus,
+}) {
     if (problemStatement == null) {
         return (
             <div className="w-screen h-full-w-nav flex justify-center align-middle items-center">
@@ -199,6 +206,10 @@ function Code({ problemStatement, problemId, code, setCode, interviewId }) {
                         description: `All testcases passed. Executed in ${res.data.execTime}ms`,
                     });
                     setShowDialog(true);
+                    // Update submission status when code is successful
+                    if (updateSubmissionStatus) {
+                        updateSubmissionStatus(problemId, true);
+                    }
                 } else {
                     setOutput(res.data.logs);
                 }

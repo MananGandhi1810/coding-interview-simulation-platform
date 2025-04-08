@@ -34,7 +34,7 @@ function InterviewStatus() {
 
                 if (result.data.state === "PROCESSED") {
                     clearInterval(interval);
-                    navigate(`/code-interview`, { state: { interviewId } });
+                    navigate(`/interview`, { state: { interviewId } });
                 } else if (result.data.state === "ERROR") {
                     clearInterval(interval);
                     setError("An error occurred while processing your resume");

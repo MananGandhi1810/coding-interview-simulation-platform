@@ -8,6 +8,7 @@ from utils import (
     push_to_db,
     push_error_to_db,
     init_db,
+    get_interview_responses,
 )
 import time
 
@@ -61,24 +62,96 @@ async def generate_code_questions(yoe):
     return problems
 
 
+async def analyse_qa(qa_response):
+    qa_str = ""
+    for qa in qa_response:
+        qa_str += f"""
+        id: {qa['id']}
+        question: {qa['question']}
+        answer: {qa['answer']}
+        """
+    prompt = f"""JSON MODE ON
+    This user has been asked questions and has given their answers:
+    {qa_str}
+
+    Evaluate each answer, and tell whether the answer is correct, partially correct, or wrong.
+    schema:
+        - analysis (list)
+            - id
+            - correctness: correct/partial/wrong
+            - explanation
+    """
+    analysis = await prompt_ai_model(prompt)
+    return analysis
+
+
+async def analyse_code(code_response):
+    code_str = ""
+    for id, code in code_response.items():
+        code_str += f"""
+        id: {id}
+        title: {code.get('title')}
+        description: {code.get('description')}
+        """
+        if len(code.get("submissions")) > 0:
+            code_str += f"""
+                submission: {code.get("submissions")[0].get('code')}
+                execution_time: {code.get("submissions")[0].get('execTime')}
+                passed_test_cases: {code.get("submissions")[0].get('passedTestCases')}
+                total_test_cases: {code.get("submissions")[0].get('totalTestCases')}
+            """
+        else:
+            code_str += "Could not solve this problem"
+    prompt = f"""
+    The user has solved some coding questions. These are its details:
+    {code_str}
+    Give the analysis of the code, and give the ways on how the user can improve
+    schema:
+        - analysis (list)
+            - id
+            - review: str
+            - improvements: str
+    """
+    analysis = await prompt_ai_model(prompt)
+    return analysis
+
+
 async def process_message(message, redis_client):
     if message["type"] == "message":
+        channel = message["channel"].decode()
         data = json.loads(message["data"])
-        print(f"Received analysis request of {data.get('name')} - {data.get('id')}")
-        try:
-            qa_response, code_problem_response = await asyncio.gather(
-                generate_qa(data, redis_client),
-                generate_code_questions(int(data["yoe"])),
-            )
-            result = await push_to_db(
-                data.get("id"),
-                qa_response["resume_analysis"],
-                qa_response["question_answer"],
-                code_problem_response,
-            )
-        except Exception as e:
-            print(e)
-            await push_error_to_db(data.get("id"))
+        if channel == "new-interview":
+            print(f"Received analysis request of {data.get('name')} - {data.get('id')}")
+            try:
+                qa_response, code_problem_response = await asyncio.gather(
+                    generate_qa(data, redis_client),
+                    generate_code_questions(int(data["yoe"])),
+                )
+                result = await push_to_db(
+                    data.get("id"),
+                    qa_response["resume_analysis"],
+                    qa_response["question_answer"],
+                    code_problem_response,
+                )
+            except Exception as e:
+                print(e)
+                await push_error_to_db(data.get("id"))
+        elif channel == "end-interview":
+            print(f"Received interview end request of {data.get("interviewId")}")
+            try:
+                interview_response = await get_interview_responses(
+                    data.get("interviewId")
+                )
+                print(interview_response)
+                qa_analysis, code_analysis = await asyncio.gather(
+                    analyse_qa(interview_response["questionAnswer"]),
+                    analyse_code(interview_response["code"]),
+                )
+                print("QA Analysis: " + json.dumps(qa_analysis, indent=2))
+                print("Code Analysis: " + json.dumps(code_analysis, indent=2))
+                # push_analysis_to_db(qa_analysis, code_analysis, data.get("interviewId"))
+            except Exception as e:
+                print(e)
 
 
 async def process_messages():
@@ -86,12 +159,14 @@ async def process_messages():
     redis_client = redis.Redis(host="localhost", port=6379, db=0)
     pubsub = redis_client.pubsub()
     pubsub.subscribe("new-interview")
+    pubsub.subscribe("end-interview")
     print(f"Subscribed to new-interview. Waiting for messages...")
 
     try:
         while True:
             message = pubsub.get_message()
             if message:
+                print(message)
                 task = asyncio.create_task(process_message(message, redis_client))
                 tasks.add(task)
                 task.add_done_callback(tasks.discard)

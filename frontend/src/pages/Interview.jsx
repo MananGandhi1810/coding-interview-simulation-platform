@@ -7,6 +7,7 @@ import NoPageFound from "./404";
 import Webcam from "react-webcam";
 import useSpeechToText from "react-hook-speech-to-text";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 function Interview() {
     const location = useLocation();
@@ -18,6 +19,7 @@ function Interview() {
     const [questionIndex, setQuestionIndex] = useState(0);
     const navigate = useNavigate();
     const [userResponses, setUserResponses] = useState([]);
+    const [currentResponse, setCurrentResponse] = useState("");
     const {
         error,
         interimResult,
@@ -30,6 +32,7 @@ function Interview() {
         continuous: true,
         useLegacyResults: false,
     });
+    const { toast } = useToast();
 
     if (!interviewId) {
         return <NoPageFound />;
@@ -42,16 +45,58 @@ function Interview() {
     }, []);
 
     useEffect(() => {
+        if (results.length > 0) {
+            const response = results.map((x) => x.transcript).join("");
+            setCurrentResponse(response);
+            submitAnswer(response);
+        }
+    }, [results]);
+
+    const submitAnswer = async (answer) => {
+        if (!answer || answer.trim() === "" || !interview) return;
+
+        try {
+            const currentQuestion = interview.questionAnswer[questionIndex];
+            console.log(currentQuestion);
+            const response = await axios
+                .post(
+                    `${process.env.SERVER_URL}/interview/submitQa/${interviewId}`,
+                    {
+                        questionIndex: questionIndex,
+                        questionId: currentQuestion.id,
+                        answer: answer,
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                        },
+                        validateStatus: false,
+                    },
+                )
+                .then((res) => res.data);
+            if (!response.success) {
+                toast({
+                    title: "Error",
+                    description: "Could not submit this answer",
+                });
+            }
+        } catch (error) {
+            console.error("Error submitting answer:", error);
+        }
+    };
+
+    useEffect(() => {
         if (questionIndex == 0) return;
-        setUserResponses((r) => [
-            ...r,
-            results.map((x) => x.transcript).join(""),
-        ]);
+        const lastResponse = results.map((x) => x.transcript).join("");
+        setUserResponses((r) => [...r, lastResponse]);
+
+        submitAnswer(lastResponse);
     }, [questionIndex]);
 
     useEffect(() => {
         console.log(userResponses);
         setResults([]);
+        setCurrentResponse("");
     }, [userResponses]);
 
     useEffect(() => {

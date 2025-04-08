@@ -6,6 +6,14 @@ import axios from "axios";
 import AuthContext from "@/providers/auth-context";
 import Code from "../components/custom/Code";
 import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
 
 function CodeInterview() {
     const location = useLocation();
@@ -17,6 +25,8 @@ function CodeInterview() {
     const [loading, setLoading] = useState(true);
     const [selectedProblemIndex, setSelectedProblemIndex] = useState(0);
     const [code, setCode] = useState({});
+    const [successfulSubmissions, setSuccessfulSubmissions] = useState({});
+    const [showEndDialog, setShowEndDialog] = useState(false);
     const navigate = useNavigate();
 
     const fetchCodeProblem = async (problemStatementId) => {
@@ -90,7 +100,7 @@ function CodeInterview() {
         if (Object.keys(problemStatements).length > 0) {
             const initialCode = {};
             Object.keys(problemStatements).forEach((problemId) => {
-                initialCode[problemId] = ""; // You can set initial code here if needed
+                initialCode[problemId] = "";
             });
             setCode(initialCode);
         }
@@ -129,7 +139,21 @@ function CodeInterview() {
         }));
     };
 
+    const updateSubmissionStatus = (problemId, isSuccessful) => {
+        if (isSuccessful) {
+            setSuccessfulSubmissions((prev) => ({
+                ...prev,
+                [problemId]: true,
+            }));
+        }
+    };
+
+    const confirmEndInterview = () => {
+        setShowEndDialog(true);
+    };
+
     const endInterview = async () => {
+        setShowEndDialog(false);
         try {
             const result = await axios
                 .post(
@@ -152,6 +176,14 @@ function CodeInterview() {
         }
     };
 
+    const getSuccessfulSubmissionsCount = () => {
+        return Object.values(successfulSubmissions).filter(Boolean).length;
+    };
+
+    const getTotalProblemsCount = () => {
+        return problemIds.length;
+    };
+
     return (
         <div className="flex h-full-w-nav w-full">
             <div className="bg-gray-100 border-r border-gray-200 flex flex-col">
@@ -163,6 +195,10 @@ function CodeInterview() {
                                 index === selectedProblemIndex
                                     ? "bg-gray-200 font-semibold"
                                     : ""
+                            } ${
+                                successfulSubmissions[problemId]
+                                    ? "text-green-600"
+                                    : ""
                             }`}
                             onClick={() => setSelectedProblemIndex(index)}
                         >
@@ -171,7 +207,7 @@ function CodeInterview() {
                     ))}
                 </ul>
                 <Button
-                    onClick={endInterview}
+                    onClick={confirmEndInterview}
                     variant="ghost"
                     className="m-2 px-3 py-1 bg-transparent hover:bg-gray-200"
                 >
@@ -189,9 +225,36 @@ function CodeInterview() {
                             handleCodeChange(selectedProblemId, newCode)
                         }
                         interviewId={interviewId}
+                        updateSubmissionStatus={updateSubmissionStatus}
                     />
                 )}
             </div>
+
+            <Dialog open={showEndDialog} onOpenChange={setShowEndDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>End Interview</DialogTitle>
+                        <DialogDescription>
+                            You have successfully solved{" "}
+                            <span className="underline">
+                                {getSuccessfulSubmissionsCount()} out of{" "}
+                                {getTotalProblemsCount()}
+                            </span>{" "}
+                            problems. Are you sure you want to end this
+                            interview?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowEndDialog(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button onClick={endInterview}>End Interview</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

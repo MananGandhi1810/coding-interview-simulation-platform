@@ -152,6 +152,59 @@ const getInterviewHandler = async (req, res) => {
     });
 };
 
+const submitQaHandler = async (req, res) => {
+    const { interviewId } = req.params;
+    const { questionId, answer } = req.body;
+    if (!interviewId || !questionId || !answer) {
+        console.log(interviewId, questionId, answer);
+        return res.status(400).json({
+            success: false,
+            message: "All fields are required",
+            data: null,
+        });
+    }
+    const question = await prisma.questionAnswer.findUnique({
+        where: {
+            id: questionId,
+            interviewId: interviewId,
+            interview: {
+                userId: req.user.id,
+            },
+        },
+    });
+
+    if (!question) {
+        return res.status(404).json({
+            success: false,
+            message: "Question not found",
+            data: null,
+        });
+    }
+
+    if (question.answer) {
+        return res.status(400).json({
+            success: false,
+            message: "Answer already submitted",
+            data: null,
+        });
+    }
+
+    await prisma.questionAnswer.update({
+        where: {
+            id: questionId,
+        },
+        data: {
+            answer,
+        },
+    });
+
+    res.json({
+        success: true,
+        message: "Answer submitted successfully",
+        data: null,
+    });
+};
+
 const endInterviewHandler = async (req, res) => {
     const { interviewId } = req.params;
 
@@ -178,6 +231,14 @@ const endInterviewHandler = async (req, res) => {
         });
     }
 
+    // if (interview.hasEnded) {
+    //     return res.status(400).json({
+    //         success: false,
+    //         message: "Interview has already ended",
+    //         data: null,
+    //     });
+    // }
+
     sendQueueMessage("end-interview", JSON.stringify({ interviewId }));
     await prisma.interview.update({
         where: {
@@ -199,5 +260,6 @@ export {
     newInterviewHandler,
     getInterviewStatusHandler,
     getInterviewHandler,
+    submitQaHandler,
     endInterviewHandler,
 };

@@ -73,6 +73,31 @@ async def get_code_problems(difficulty: str) -> list[str]:
     return problems
 
 
+async def get_interview_responses(interview_id: str) -> dict:
+    interview = await db.interview.find_unique(
+        {"id": interview_id},
+        include={"questionAnswer": True, "interviewCodeProblems": True},
+    )
+    code_submissions = {}
+    for code_problem in interview.interviewCodeProblems:
+        code_submissions[code_problem.codeProblemId] = await db.codeproblem.find_first(
+            where={"id": code_problem.codeProblemId},
+            include={
+                "submissions": {
+                    "where": {"success": True},
+                    "order_by": {"execTime": "asc"},
+                    "take": 1,
+                },
+            },
+        )
+        code_submissions[code_problem.codeProblemId] = json.loads(
+            code_submissions[code_problem.codeProblemId].model_dump_json()
+        )
+    interview = json.loads(interview.model_dump_json())
+    interview["code"] = code_submissions
+    return interview
+
+
 async def push_to_db(
     id: str, analysis: dict, question_answer: list[int], code_problems: list[str]
 ) -> None:
