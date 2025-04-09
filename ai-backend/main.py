@@ -113,6 +113,18 @@ async def analyse_code(code_response):
         - analysis (list)
             - id
             - review: str
+    {"""{
+        "analysis": [
+            {
+                "id": "id",
+                "review": "review"
+            },
+            {
+                "id": "id",
+                "review": "review"
+            },...
+        ]
+    }"""}
     """
     analysis = await prompt_ai_model(prompt)
     return analysis
@@ -150,7 +162,9 @@ async def process_message(message, redis_client):
                 )
                 print("QA Analysis: " + json.dumps(qa_analysis, indent=2))
                 print("Code Analysis: " + json.dumps(code_analysis, indent=2))
-                await push_analysis_to_db(qa_analysis['analysis'], code_analysis['analysis'], interviewId)
+                await push_analysis_to_db(
+                    qa_analysis["analysis"], code_analysis["analysis"], interviewId
+                )
             except Exception as e:
                 print(e)
                 await set_interview_result_state(interviewId, "ERROR")

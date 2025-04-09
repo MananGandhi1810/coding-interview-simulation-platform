@@ -4,9 +4,6 @@ import { Button } from "@/components/ui/button";
 import Markdown from "react-markdown";
 
 function CodingTab({ codeProblems = [], codeAnalysis = [] }) {
-    useEffect(() => {
-        console.log(codeAnalysis), [codeAnalysis];
-    });
     const [expandedSections, setExpandedSections] = useState({});
 
     const toggleSection = (problemId, sectionType) => {
@@ -30,10 +27,20 @@ function CodingTab({ codeProblems = [], codeAnalysis = [] }) {
                     expandedSections[`${problemId}-statement`];
                 const isCodeExpanded = expandedSections[`${problemId}-code`];
 
+                // Get the user's code submission, if it exists
+                const userSubmission =
+                    problem.codeProblem.submissions &&
+                    problem.codeProblem.submissions.length > 0
+                        ? problem.codeProblem.submissions[0]
+                        : null;
+
                 return (
                     <Card key={index}>
                         <CardHeader>
-                            <CardTitle>Coding Problem {index + 1}</CardTitle>
+                            <CardTitle>
+                                Coding Problem {index + 1}:{" "}
+                                {problem.codeProblem.title}
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="border rounded-md">
@@ -74,7 +81,7 @@ function CodingTab({ codeProblems = [], codeAnalysis = [] }) {
                                 >
                                     <div className="prose dark:prose-invert min-w-full">
                                         <Markdown>
-                                            {problem.description ||
+                                            {problem.codeProblem.description ||
                                                 "No problem statement available."}
                                         </Markdown>
                                     </div>
@@ -82,7 +89,7 @@ function CodingTab({ codeProblems = [], codeAnalysis = [] }) {
                             </div>
 
                             <div className="border rounded-md">
-                                <div 
+                                <div
                                     className="flex items-center justify-between p-3 bg-muted/50 cursor-pointer"
                                     onClick={() =>
                                         toggleSection(problemId, "code")
@@ -119,10 +126,28 @@ function CodingTab({ codeProblems = [], codeAnalysis = [] }) {
                                 >
                                     <pre className="bg-muted p-4 rounded-md overflow-auto">
                                         <code className="text-sm">
-                                            {problem.userCode ||
-                                                "No code submission found."}
+                                            {userSubmission
+                                                ? userSubmission.code
+                                                : "No code submission found."}
                                         </code>
                                     </pre>
+                                    {userSubmission && (
+                                        <div className="mt-2 text-sm text-muted-foreground">
+                                            <p>
+                                                Language:{" "}
+                                                {userSubmission.language}
+                                            </p>
+                                            <p>
+                                                Execution Time:{" "}
+                                                {userSubmission.execTime} ms
+                                            </p>
+                                            <p>
+                                                Tests Passed:{" "}
+                                                {userSubmission.passedTestCases}
+                                                /{userSubmission.totalTestCases}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

@@ -35,7 +35,7 @@ function ResultStatus() {
                 );
 
                 if (response.data.success) {
-                    const { state: resultState } = response.data.data;
+                    const { resultState } = response.data.data;
                     setStatus(resultState);
 
                     if (

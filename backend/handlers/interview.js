@@ -128,13 +128,31 @@ const getInterviewHandler = async (req, res) => {
                     id: true,
                     question: true,
                     answer: true,
+                    QaAnalysis: true,
                 },
             },
-            codeAnalysis: true,
+            codeAnalysis: {
+                include: {
+                    codeProblem: true,
+                },
+            },
             resumeAnalysis: true,
             interviewCodeProblems: {
                 select: {
-                    codeProblem: true,
+                    codeProblem: {
+                        include: {
+                            submissions: {
+                                where: {
+                                    interviewId: interviewId,
+                                    success: true,
+                                },
+                                orderBy: {
+                                    execTime: "asc",
+                                },
+                                take: 1,
+                            },
+                        },
+                    },
                     codeProblemId: true,
                 },
             },
