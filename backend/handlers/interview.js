@@ -203,7 +203,7 @@ const submitQaHandler = async (req, res) => {
         });
     }
 
-    if (question.answer !== null) {
+    if (question.answer != null) {
         console.log(question);
         return res.status(400).json({
             success: false,
@@ -212,7 +212,7 @@ const submitQaHandler = async (req, res) => {
         });
     }
 
-    await prisma.questionAnswer.update({
+    const updatedQuestion = await prisma.questionAnswer.update({
         where: {
             id: questionId,
         },
@@ -220,6 +220,7 @@ const submitQaHandler = async (req, res) => {
             answer,
         },
     });
+    console.log(updatedQuestion);
 
     res.json({
         success: true,
