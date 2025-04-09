@@ -131,6 +131,7 @@ const executeCode = async (message, channel) => {
     var correctResult = false;
     try {
         const outputResults = logs.split("---").filter((o) => o.trim() !== "");
+        console.log(testCases);
         const passedTests = outputResults
             .map(
                 (output, idx) =>

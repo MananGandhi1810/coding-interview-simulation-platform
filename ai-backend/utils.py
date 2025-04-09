@@ -84,7 +84,7 @@ async def get_interview_responses(interview_id: str) -> dict:
             where={"id": code_problem.codeProblemId},
             include={
                 "submissions": {
-                    "where": {"success": True},
+                    "where": {"success": True, "interviewId": interview_id},
                     "order_by": {"execTime": "asc"},
                     "take": 1,
                 },

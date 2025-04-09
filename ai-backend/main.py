@@ -74,6 +74,7 @@ async def analyse_qa(qa_response):
         expectedanswer: {qa['expectedAnswer']}
         """
     prompt = f"""JSON MODE ON
+    You are talking directly to the user.
     This user has been asked questions and has given their answers:
     {qa_str}
 
@@ -106,6 +107,7 @@ async def analyse_code(code_response):
         else:
             code_str += "Could not solve this problem"
     prompt = f"""
+    You are talking directly to the user.
     The user has solved some coding questions. These are its details:
     {code_str}
     Give the analysis of the code, and give the ways on how the user can improve
@@ -126,6 +128,7 @@ async def analyse_code(code_response):
         ]
     }"""}
     """
+    print(prompt)
     analysis = await prompt_ai_model(prompt)
     return analysis
 
