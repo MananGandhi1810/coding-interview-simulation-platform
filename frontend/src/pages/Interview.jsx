@@ -17,9 +17,11 @@ function Interview() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [interview, setInterview] = useState(null);
     const [questionIndex, setQuestionIndex] = useState(0);
-    const navigate = useNavigate();
     const [userResponses, setUserResponses] = useState([]);
-    const [currentResponse, setCurrentResponse] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const navigate = useNavigate();
+    const { toast } = useToast();
+
     const {
         error,
         interimResult,
@@ -32,7 +34,6 @@ function Interview() {
         continuous: true,
         useLegacyResults: false,
     });
-    const { toast } = useToast();
 
     if (!interviewId) {
         return <NoPageFound />;
@@ -41,59 +42,13 @@ function Interview() {
     useEffect(() => {
         if (error) {
             setErrorMessage(error);
+            toast({
+                title: "Microphone Error",
+                description: error,
+                variant: "destructive",
+            });
         }
-    }, []);
-
-    const submitAnswer = async (answer) => {
-        if (!answer || answer.trim() === "" || !interview) return;
-
-        try {
-            const currentQuestion = interview.questionAnswer[questionIndex];
-            console.log(currentQuestion);
-            const response = await axios
-                .post(
-                    `${process.env.SERVER_URL}/interview/submitQa/${interviewId}`,
-                    {
-                        questionIndex: questionIndex,
-                        questionId: currentQuestion.id,
-                        answer: answer,
-                    },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${user.token}`,
-                        },
-                        validateStatus: false,
-                    },
-                )
-                .then((res) => res.data);
-            if (!response.success) {
-                toast({
-                    title: "Error",
-                    description: "Could not submit this answer",
-                });
-            }
-        } catch (error) {
-            console.error("Error submitting answer:", error);
-        }
-    };
-
-    useEffect(() => {
-        if (questionIndex == 0) return;
-        const lastResponse = results.map((x) => x.transcript).join("");
-        setUserResponses((r) => [...r, lastResponse]);
-
-        submitAnswer(lastResponse);
-    }, [questionIndex]);
-
-    useEffect(() => {
-        console.log(userResponses);
-        setResults([]);
-        setCurrentResponse("");
-    }, [userResponses]);
-
-    useEffect(() => {
-        console.log(results);
-    }, [results]);
+    }, [error, toast]);
 
     useEffect(() => {
         const fetchInterview = async () => {
@@ -116,6 +71,73 @@ function Interview() {
         fetchInterview();
     }, [interviewId, user.token]);
 
+    const submitAnswer = async (answer, isLast = false) => {
+        if (!answer || answer.trim() === "" || !interview) return;
+
+        setIsSubmitting(true);
+
+        try {
+            const currentQuestion =
+                interview.questionAnswer[questionIndex - (isLast ? 0 : 1)];
+            console.log(
+                currentQuestion,
+                interview.questionAnswer,
+                questionIndex,
+                questionIndex - 1,
+            );
+            const response = await axios
+                .post(
+                    `${process.env.SERVER_URL}/interview/submitQa/${interviewId}`,
+                    {
+                        questionId: currentQuestion.id,
+                        answer: answer,
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${user.token}`,
+                        },
+                        validateStatus: false,
+                    },
+                )
+                .then((res) => res.data);
+
+            if (!response.success) {
+                toast({
+                    title: "Error",
+                    description: response.message,
+                    variant: "destructive",
+                });
+            } else {
+                toast({
+                    title: "Success",
+                    description: "Answer submitted successfully",
+                });
+            }
+        } catch (error) {
+            console.error("Error submitting answer:", error);
+            toast({
+                title: "Error",
+                description: "Failed to submit answer",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    useEffect(() => {
+        if (questionIndex === 0) return;
+        console.log("questionIndex changed: " + questionIndex);
+
+        const lastResponse = results.map((x) => x.transcript).join("");
+        if (lastResponse.trim() !== "") {
+            setUserResponses((r) => [...r, lastResponse]);
+            submitAnswer(lastResponse);
+        }
+
+        setResults([]);
+    }, [questionIndex]);
+
     if (loading) {
         return (
             <div className="container mx-auto p-4 flex flex-col items-center justify-center h-full-w-nav">
@@ -129,11 +151,37 @@ function Interview() {
         return (
             <div className="container mx-auto p-4 flex flex-col items-center justify-center h-full-w-nav">
                 <h1 className="text-2xl font-bold text-red-500">
-                    {errorMessage}
+                    {errorMessage || "Interview not found"}
                 </h1>
             </div>
         );
     }
+
+    const handleNext = () => {
+        if (isRecording) {
+            stopSpeechToText();
+        }
+
+        if (questionIndex < interview.questionAnswer.length - 1) {
+            setQuestionIndex((i) => i + 1);
+        } else {
+            const lastResponse = results.map((x) => x.transcript).join("");
+            if (lastResponse.trim() !== "") {
+                setUserResponses((r) => [...r, lastResponse]);
+                submitAnswer(lastResponse, true);
+            }
+            navigate("/code-interview", { state: { interviewId } });
+        }
+    };
+
+    const toggleMicrophone = () => {
+        if (isRecording) {
+            stopSpeechToText();
+        } else {
+            setResults([]);
+            startSpeechToText();
+        }
+    };
 
     return (
         <div className="w-full p-4">
@@ -157,11 +205,7 @@ function Interview() {
                             />
                             <div
                                 className="absolute bottom-4 right-4 p-3 rounded-full bg-white/80 backdrop-blur-sm cursor-pointer hover:bg-white/90 transition-colors"
-                                onClick={
-                                    isRecording
-                                        ? stopSpeechToText
-                                        : startSpeechToText
-                                }
+                                onClick={toggleMicrophone}
                             >
                                 {isRecording ? (
                                     <Mic
@@ -173,19 +217,24 @@ function Interview() {
                                 )}
                             </div>
                         </div>
-                        <div className="items-center py-4">
-                            {results.map((result) => {
-                                return (
+                        <div className="items-center py-4 w-full">
+                            {isRecording && (
+                                <div className="mb-2 text-sm text-red-500">
+                                    Recording...
+                                </div>
+                            )}
+                            <div className="border p-3 rounded-lg min-h-24 w-full">
+                                {results.map((result) => (
                                     <span key={result.timestamp}>
                                         {result.transcript}{" "}
                                     </span>
-                                );
-                            })}
-                            {interimResult && (
-                                <span className="text-center">
-                                    {interimResult}
-                                </span>
-                            )}
+                                ))}
+                                {interimResult && (
+                                    <span className="text-gray-400">
+                                        {interimResult}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -200,37 +249,32 @@ function Interview() {
                                         interview.questionAnswer[questionIndex]
                                             .question
                                     }
+                                    {interview.questionAnswer[questionIndex].id}
+                                    .
                                 </p>
                             </div>
                         </div>
-                        {questionIndex < interview.questionAnswer.length - 1 ? (
-                            <Button
-                                onClick={() => {
-                                    setQuestionIndex((i) => i + 1);
-                                }}
-                                className="mt-2 px-5 self-end"
-                                disabled={
-                                    questionIndex >=
-                                        interview.questionAnswer.length - 1 ||
-                                    results.length == 0
-                                }
-                            >
-                                Next <ArrowRight className="ml-2" size={20} />
-                            </Button>
-                        ) : (
-                            <Button
-                                onClick={() => {
-                                    navigate("/code-interview", {
-                                        state: { interviewId },
-                                    });
-                                }}
-                                className="mt-2 px-5 self-end"
-                                disabled={results.length == 0}
-                            >
-                                Go to Code Interview{" "}
-                                <CircleCheck className="ml-2" size={20} />
-                            </Button>
-                        )}
+                        <Button
+                            onClick={handleNext}
+                            className="mt-2 px-5 self-end"
+                            disabled={isSubmitting || results.length === 0}
+                        >
+                            {questionIndex <
+                            interview.questionAnswer.length - 1 ? (
+                                <>
+                                    Next{" "}
+                                    <ArrowRight className="ml-2" size={20} />
+                                </>
+                            ) : (
+                                <>
+                                    Go to Code Interview{" "}
+                                    <CircleCheck className="ml-2" size={20} />
+                                </>
+                            )}
+                            {isSubmitting && (
+                                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                            )}
+                        </Button>
                     </div>
                 </div>
             </div>

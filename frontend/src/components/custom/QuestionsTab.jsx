@@ -29,7 +29,7 @@ function QuestionsTab({ questionAnswers = [] }) {
     return (
         <div className="space-y-6">
             {questionAnswers.map((qa, index) => {
-                console.log(qa)
+                console.log(qa);
                 return (
                     <Card key={qa.id}>
                         <CardHeader>
