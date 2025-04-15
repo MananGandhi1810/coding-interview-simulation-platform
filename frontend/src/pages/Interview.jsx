@@ -249,8 +249,6 @@ function Interview() {
                                         interview.questionAnswer[questionIndex]
                                             .question
                                     }
-                                    {interview.questionAnswer[questionIndex].id}
-                                    .
                                 </p>
                             </div>
                         </div>
