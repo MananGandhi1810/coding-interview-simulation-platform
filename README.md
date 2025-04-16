@@ -16,3 +16,4 @@ A comprehensive platform to simulate coding interviews. This project helps devel
 -   **Database:** PostgreSQL, Redis
 -   **AI:** Gemini 2.0 Flash, Mistral Small, Mistral OCR, Llama 3.3 70B
 -   **Code Execution:** Custom Docker Image
+-   **Storage:** UploadThing

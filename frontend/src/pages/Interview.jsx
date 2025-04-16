@@ -2,7 +2,15 @@ import React, { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "@/providers/auth-context";
 import axios from "axios";
-import { ArrowRight, CircleCheck, Loader2, Mic, MicOff } from "lucide-react";
+import {
+    ArrowRight,
+    CircleCheck,
+    Loader2,
+    Mic,
+    MicOff,
+    VolumeX,
+    Volume2,
+} from "lucide-react";
 import NoPageFound from "./404";
 import Webcam from "react-webcam";
 import useSpeechToText from "react-hook-speech-to-text";
@@ -19,6 +27,7 @@ function Interview() {
     const [questionIndex, setQuestionIndex] = useState(0);
     const [userResponses, setUserResponses] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -138,28 +147,14 @@ function Interview() {
         setResults([]);
     }, [questionIndex]);
 
-    if (loading) {
-        return (
-            <div className="container mx-auto p-4 flex flex-col items-center justify-center h-full-w-nav">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <p>Loading interview...</p>
-            </div>
-        );
-    }
-
-    if (errorMessage || !interview) {
-        return (
-            <div className="container mx-auto p-4 flex flex-col items-center justify-center h-full-w-nav">
-                <h1 className="text-2xl font-bold text-red-500">
-                    {errorMessage || "Interview not found"}
-                </h1>
-            </div>
-        );
-    }
-
     const handleNext = () => {
         if (isRecording) {
             stopSpeechToText();
+        }
+
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
         }
 
         if (questionIndex < interview.questionAnswer.length - 1) {
@@ -182,6 +177,66 @@ function Interview() {
             startSpeechToText();
         }
     };
+
+    const speakQuestion = () => {
+        if (isSpeaking) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
+            return;
+        }
+
+        const questionText = interview.questionAnswer[questionIndex].question;
+        const utterance = new SpeechSynthesisUtterance(questionText);
+
+        utterance.onend = () => {
+            setIsSpeaking(false);
+        };
+
+        setIsSpeaking(true);
+        window.speechSynthesis.speak(utterance);
+    };
+
+    useEffect(() => {
+        if (
+            interview &&
+            interview.questionAnswer &&
+            interview.questionAnswer.length > 0
+        ) {
+            window.speechSynthesis.cancel();
+            setIsSpeaking(false);
+
+            const timer = setTimeout(() => {
+                speakQuestion();
+            }, 300);
+
+            return () => clearTimeout(timer);
+        }
+    }, [questionIndex, interview]);
+
+    useEffect(() => {
+        return () => {
+            window.speechSynthesis.cancel();
+        };
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="container mx-auto p-4 flex flex-col items-center justify-center h-full-w-nav">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <p>Loading interview...</p>
+            </div>
+        );
+    }
+
+    if (errorMessage || !interview) {
+        return (
+            <div className="container mx-auto p-4 flex flex-col items-center justify-center h-full-w-nav">
+                <h1 className="text-2xl font-bold text-red-500">
+                    {errorMessage || "Interview not found"}
+                </h1>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full p-4">
@@ -240,10 +295,32 @@ function Interview() {
 
                     <div className="flex-1 flex flex-col items-center">
                         <div className="space-y-4 w-full">
-                            <div className="p-4 border rounded-lg">
-                                <h3 className="font-medium">
-                                    Question {questionIndex + 1}
-                                </h3>
+                            <div className="p-4 border rounded-lg relative">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-medium">
+                                        Question {questionIndex + 1}
+                                    </h3>
+                                    <button
+                                        onClick={speakQuestion}
+                                        className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                                        aria-label={
+                                            isSpeaking
+                                                ? "Stop speaking"
+                                                : "Speak question again"
+                                        }
+                                        title={
+                                            isSpeaking
+                                                ? "Stop speaking"
+                                                : "Speak question again"
+                                        }
+                                    >
+                                        {isSpeaking ? (
+                                            <VolumeX className="h-5 w-5 text-blue-500" />
+                                        ) : (
+                                            <Volume2 className="h-5 w-5" />
+                                        )}
+                                    </button>
+                                </div>
                                 <p className="mt-2">
                                     {
                                         interview.questionAnswer[questionIndex]
