@@ -16,6 +16,14 @@ import Webcam from "react-webcam";
 import useSpeechToText from "react-hook-speech-to-text";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
 
 function Interview() {
     const location = useLocation();
@@ -28,6 +36,8 @@ function Interview() {
     const [userResponses, setUserResponses] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const [tabSwitchCount, setTabSwitchCount] = useState(0);
+    const [showTabSwitchDialog, setShowTabSwitchDialog] = useState(false);
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -80,6 +90,25 @@ function Interview() {
         fetchInterview();
     }, [interviewId, user.token]);
 
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                setTabSwitchCount((prev) => prev + 1);
+            } else if (tabSwitchCount > 0) {
+                setShowTabSwitchDialog(true);
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange,
+            );
+        };
+    }, [tabSwitchCount]);
+
     const submitAnswer = async (answer, isLast = false) => {
         if (!answer || answer.trim() === "" || !interview) return;
 
@@ -88,12 +117,6 @@ function Interview() {
         try {
             const currentQuestion =
                 interview.questionAnswer[questionIndex - (isLast ? 0 : 1)];
-            console.log(
-                currentQuestion,
-                interview.questionAnswer,
-                questionIndex,
-                questionIndex - 1,
-            );
             const response = await axios
                 .post(
                     `${process.env.SERVER_URL}/interview/submitQa/${interviewId}`,
@@ -136,7 +159,6 @@ function Interview() {
 
     useEffect(() => {
         if (questionIndex === 0) return;
-        console.log("questionIndex changed: " + questionIndex);
 
         const lastResponse = results.map((x) => x.transcript).join("");
         if (lastResponse.trim() !== "") {
@@ -353,6 +375,28 @@ function Interview() {
                     </div>
                 </div>
             </div>
+
+            <Dialog
+                open={showTabSwitchDialog}
+                onOpenChange={setShowTabSwitchDialog}
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Tab Switch Detected</DialogTitle>
+                        <DialogDescription>
+                            You've switched tabs {tabSwitchCount} time
+                            {tabSwitchCount > 1 ? "s" : ""}. Leaving the
+                            interview tab may be flagged as suspicious activity
+                            and could affect your interview results.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button onClick={() => setShowTabSwitchDialog(false)}>
+                            I understand
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
